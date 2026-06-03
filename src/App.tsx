@@ -231,9 +231,25 @@ export default function App() {
   // Auto-scroll to active sub-tab inside admin navigation when it changes
   useEffect(() => {
     if (portal === 'admin' && adminSidebarNavRef.current) {
-      const activeEl = adminSidebarNavRef.current.querySelector('[data-active="true"]');
+      const navContainer = adminSidebarNavRef.current;
+      const activeEl = navContainer.querySelector('[data-active="true"]') as HTMLElement | null;
       if (activeEl) {
-        activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        // Programmatic calculation for perfect center positioning
+        const containerHeight = navContainer.clientHeight;
+        const elemTop = activeEl.offsetTop;
+        const elemHeight = activeEl.offsetHeight || activeEl.clientHeight;
+        const targetScrollTop = elemTop - (containerHeight / 2) + (elemHeight / 2);
+
+        // Instantly execute smooth calculated scroll
+        navContainer.scrollTo({
+          top: targetScrollTop,
+          behavior: 'smooth'
+        });
+
+        // Fail-safe fallback to standard scrollIntoView center block parameter
+        if (typeof activeEl.scrollIntoView === 'function') {
+          activeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
       }
     }
   }, [adminSubTab, portal]);
@@ -810,8 +826,8 @@ export default function App() {
                             data-active={adminSubTab === 'kelola'}
                             className={`w-full px-3 py-2.5 transition-all duration-200 hover:scale-105 active:scale-95 flex items-center justify-between text-left border-l-4 text-xs ${
                               adminSubTab === 'kelola'
-                                ? 'bg-[#1B4332] text-white shadow-sm border-l-emerald-400 pl-2 rounded-r-xl rounded-l-none font-bold'
-                                : 'text-stone-300 hover:bg-[#1B4332]/30 hover:text-white border-l-transparent pl-2 rounded-xl font-bold'
+                                ? 'bg-gradient-to-r from-[#1B4332] via-[#113C2B] to-[#0D2E21] text-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.1),0_2px_4px_rgba(0,0,0,0.3)] border-l-emerald-400 pl-2 rounded-r-xl rounded-l-none font-bold'
+                                : 'text-stone-300 hover:bg-gradient-to-r hover:from-[#113C2B]/85 hover:to-[#0D2E21]/40 hover:text-white border-l-transparent hover:border-l-emerald-500/60 pl-2 rounded-xl font-bold hover:shadow-[inset_0_1px_2px_rgba(255,255,255,0.06),0_2px_4px_rgba(0,0,0,0.25)]'
                             }`}
                           >
                             <div className="flex items-center gap-2.5 min-w-0">
@@ -837,8 +853,8 @@ export default function App() {
                             data-active={adminSubTab === 'rancang'}
                             className={`w-full px-3 py-2.5 transition-all duration-200 hover:scale-105 active:scale-95 flex items-center gap-2.5 text-left border-l-4 text-xs ${
                               adminSubTab === 'rancang'
-                                ? 'bg-[#1B4332] text-white shadow-sm border-l-emerald-400 pl-2 rounded-r-xl rounded-l-none font-bold'
-                                : 'text-stone-300 hover:bg-[#1B4332]/30 hover:text-white border-l-transparent pl-2 rounded-xl font-bold'
+                                ? 'bg-gradient-to-r from-[#1B4332] via-[#113C2B] to-[#0D2E21] text-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.1),0_2px_4px_rgba(0,0,0,0.3)] border-l-emerald-400 pl-2 rounded-r-xl rounded-l-none font-bold'
+                                : 'text-stone-300 hover:bg-gradient-to-r hover:from-[#113C2B]/85 hover:to-[#0D2E21]/40 hover:text-white border-l-transparent hover:border-l-emerald-500/60 pl-2 rounded-xl font-bold hover:shadow-[inset_0_1px_2px_rgba(255,255,255,0.06),0_2px_4px_rgba(0,0,0,0.25)]'
                             }`}
                           >
                             <Settings className="w-4 h-4 text-emerald-400 shrink-0" />
@@ -882,7 +898,7 @@ export default function App() {
                             setIsAdminSidebarOpen(false);
                             speakText("Membuka Portal Website Utama");
                           }}
-                          className="w-full px-3 py-2.5 transition-all duration-200 hover:scale-105 active:scale-95 flex items-center gap-2.5 text-left border-l-4 border-l-transparent pl-2 rounded-xl text-xs font-semibold text-rose-300 hover:bg-rose-950/20 hover:text-rose-200"
+                          className="w-full px-3 py-2.5 transition-all duration-200 hover:scale-105 active:scale-95 flex items-center gap-2.5 text-left border-l-4 border-l-transparent hover:border-l-rose-500/50 pl-2 rounded-xl text-xs font-semibold text-rose-300 hover:bg-gradient-to-r hover:from-rose-950/40 hover:to-rose-900/15 hover:text-rose-250 hover:shadow-[inset_0_1px_2px_rgba(255,255,255,0.03),0_2px_4px_rgba(0,0,0,0.15)]"
                         >
                           <LogOut className="w-4 h-4 text-rose-400 shrink-0" />
                           <span className="truncate">Kembali ke Website</span>
