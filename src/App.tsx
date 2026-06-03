@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Leaf, 
   Search, 
@@ -33,7 +33,9 @@ import {
   Menu,
   X,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Plus,
+  Activity
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -81,6 +83,17 @@ export default function App() {
   const [adminSubTab, setAdminSubTab] = useState<'kelola' | 'rancang'>('kelola');
   const [trackSearchCode, setTrackSearchCode] = useState<string>('');
   const [isAdminSidebarOpen, setIsAdminSidebarOpen] = useState(false);
+  const [isMenuUtamaOpen, setIsMenuUtamaOpen] = useState(true);
+  const [isPortalPublikOpen, setIsPortalPublikOpen] = useState(true);
+  const [sidebarSearchQuery, setSidebarSearchQuery] = useState('');
+  const [isActivityLogModalOpen, setIsActivityLogModalOpen] = useState(false);
+  const [adminActivityLogs, setAdminActivityLogs] = useState<Array<{ id: string, action: string, timestamp: string, iconType: string }>>([
+    { id: 'log-1', action: 'Login berhasil sebagai Administrator DLH Pontianak', timestamp: '2026-06-03 12:44', iconType: 'success' },
+    { id: 'log-2', action: 'Memverifikasi kelayakan teknis berkas PT. Pontianak Tirta Agung', timestamp: '2026-06-03 11:20', iconType: 'info' },
+    { id: 'log-3', action: 'Menerbitkan rekomendasi kelayakan UKL-UPL Bapak Ahmad Subardjo', timestamp: '2026-06-03 09:12', iconType: 'success' },
+    { id: 'log-4', action: 'Memperbarui koordinat sebaran TPS 3R di peta lingkungan', timestamp: '2026-06-02 16:30', iconType: 'info' },
+    { id: 'log-5', action: 'Menambahkan kuesioner baru untuk layanan Pengujian Kebisingan', timestamp: '2026-06-02 14:15', iconType: 'success' },
+  ]);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   // States to power newly implemented advanced features:
@@ -179,6 +192,75 @@ export default function App() {
       addToast('Prosedur perizinan & FAQ berhasil disimpan ke memori offline perangkat Anda!', 'success');
       speakText('Kanal prosedur perizinan sukses tersimpan secara offline.');
     }, 800);
+  };
+
+  // Ref for the admin sidebar navigation container
+  const adminSidebarNavRef = useRef<HTMLElement | null>(null);
+  // Ref for the sidebar search input
+  const sidebarSearchInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Global Keyboard Shortcuts (Cmd/Ctrl + K)
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      // Check for Cmd+K (Mac) or Ctrl+K (Windows/Linux)
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        if (portal === 'admin') {
+          setIsAdminSidebarOpen(true);
+          setTimeout(() => {
+            if (sidebarSearchInputRef.current) {
+              sidebarSearchInputRef.current.focus();
+              sidebarSearchInputRef.current.select();
+            }
+          }, 50);
+          addToast('Fokus pencarian menu sidebar admin (Ctrl+K)', 'info');
+          speakText('Pencarian menu aktif');
+        } else {
+          addToast('Shortcut Ctrl+K aktif. Silakan masuk ke Panel Admin dahulu untuk mencari menu.', 'info');
+          speakText('Shortcut cari menu aktif di panel admin');
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleGlobalKeyDown);
+    };
+  }, [portal]);
+
+  // Auto-scroll to active sub-tab inside admin navigation when it changes
+  useEffect(() => {
+    if (portal === 'admin' && adminSidebarNavRef.current) {
+      const activeEl = adminSidebarNavRef.current.querySelector('[data-active="true"]');
+      if (activeEl) {
+        activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }
+  }, [adminSubTab, portal]);
+
+  // Keyboard accessibility handler for admin sidebar buttons using Arrow keys
+  const handleSidebarKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      const nav = adminSidebarNavRef.current;
+      if (!nav) return;
+      
+      const focusableSelectors = 'button, a, input';
+      const focusableElements = Array.from(nav.querySelectorAll(focusableSelectors)) as HTMLElement[];
+      if (focusableElements.length === 0) return;
+
+      const activeEl = document.activeElement as HTMLElement;
+      const currentIndex = focusableElements.indexOf(activeEl);
+
+      let nextIndex = 0;
+      if (e.key === 'ArrowDown') {
+        nextIndex = currentIndex + 1 < focusableElements.length ? currentIndex + 1 : 0;
+      } else if (e.key === 'ArrowUp') {
+        nextIndex = currentIndex - 1 >= 0 ? currentIndex - 1 : focusableElements.length - 1;
+      }
+
+      focusableElements[nextIndex].focus();
+    }
   };
 
   // ----------------------------------------------------
@@ -446,6 +528,12 @@ export default function App() {
     speakText(`Membuka tab ${tabIndo}`);
   };
 
+  const showKelolaBerkas = "Kelola Berkas Masuk".toLowerCase().includes(sidebarSearchQuery.toLowerCase());
+  const showRancangLayanan = "Rancang Layanan Baru".toLowerCase().includes(sidebarSearchQuery.toLowerCase());
+  const showKembaliWebsite = "Kembali ke Website".toLowerCase().includes(sidebarSearchQuery.toLowerCase());
+
+  const pendingCount = submissions.filter(s => s.status === 'DIAJUKAN' || s.status === 'VERIFIKASI_ADMIN').length;
+
   return (
     <div className={portal === 'admin' ? "min-h-screen bg-stone-100 dark:bg-stone-950 flex transition-colors duration-300 relative text-[#081C15] dark:text-stone-100" : "min-h-screen bg-stone-50 dark:bg-stone-950 flex flex-col transition-colors duration-300 relative text-[#081C15] dark:text-stone-100"}>
       
@@ -480,6 +568,94 @@ export default function App() {
           ---------------------------------------------------- */}
       <AccessibilityWidget settings={accessibility} onChange={setAccessibility} />
 
+      {/* Admin Activity Log Modal */}
+      <AnimatePresence>
+        {isActivityLogModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 font-sans text-stone-900 dark:text-stone-100">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsActivityLogModalOpen(false)}
+              className="absolute inset-0 bg-black/70 backdrop-blur-sm pointer-events-auto"
+            />
+            
+            {/* Modal Container */}
+            <motion.div
+              initial={{ scale: 0.95, y: 15, opacity: 0 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              exit={{ scale: 0.95, y: 15, opacity: 0 }}
+              transition={{ type: "spring", duration: 0.35, bounce: 0.2 }}
+              className="bg-white dark:bg-stone-900 rounded-3xl shadow-2xl border border-stone-200/60 dark:border-stone-800/80 w-full max-w-lg overflow-hidden relative z-10 flex flex-col max-h-[85vh] pointer-events-auto"
+            >
+              {/* Header */}
+              <div className="p-6 border-b border-stone-150 dark:border-stone-850 flex items-center justify-between bg-gradient-to-r from-emerald-950/20 to-transparent">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-650 dark:text-emerald-400">
+                    <Activity className="w-5 h-5 animate-pulse" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-extrabold text-[#081C15] dark:text-stone-100 uppercase tracking-tight">Catatan Log Aktivitas Admin</h3>
+                    <p className="text-[10px] text-stone-400 dark:text-stone-500 font-mono">SOBATHIJAU SECURITY AUDIT RAIL</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsActivityLogModalOpen(false)}
+                  className="p-1.5 rounded-xl hover:bg-stone-100 dark:hover:bg-stone-805 text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 transition"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Action Log Content list */}
+              <div className="p-6 overflow-y-auto space-y-4 flex-1">
+                <div className="bg-amber-500/10 dark:bg-amber-500/5 border border-amber-500/20 rounded-2xl p-4 text-[11px] text-amber-800 dark:text-amber-300 font-medium leading-relaxed flex items-start gap-2.5 text-left">
+                  <span className="text-amber-500 text-sm mt-0.5 leading-none">⚠️</span>
+                  <div>
+                    <span className="font-bold">Keamanan & Audit Lingkungan:</span> Aktivitas ini direkam dalam sistem audit log terpusat Dinas Lingkungan Hidup Pontianak guna menjamin transparansi publik.
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  {adminActivityLogs.map((log) => (
+                    <div 
+                      key={log.id} 
+                      className="p-3.5 rounded-2xl border border-stone-100 dark:border-stone-800 bg-stone-50/50 dark:bg-stone-900/40 flex items-start gap-3 hover:bg-emerald-50/20 dark:hover:bg-emerald-950/10 transition-colors text-left"
+                    >
+                      <div className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${log.iconType === 'success' ? 'bg-emerald-500 animate-pulse' : 'bg-blue-400'}`} />
+                      <div className="flex-1 space-y-1">
+                        <p className="text-xs text-stone-750 dark:text-stone-200 font-semibold leading-normal">{log.action}</p>
+                        <p className="text-[9px] text-stone-400 dark:text-stone-500 font-mono tracking-wider">{log.timestamp} WIB</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="p-4 bg-stone-50 dark:bg-stone-900/60 border-t border-stone-150 dark:border-stone-850 flex items-center justify-between text-[11px]">
+                <span className="text-stone-400 dark:text-stone-500 font-mono text-[9px]">TOTAL LOGS: {adminActivityLogs.length} REC</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAdminActivityLogs([
+                      { id: `log-${Date.now()}`, action: 'Admin menyegarkan catatan audit log lokal (refresh log)', timestamp: new Date().toISOString().replace('T', ' ').slice(0, 16), iconType: 'info' },
+                      ...adminActivityLogs
+                    ]);
+                    addToast('Log aktivitas diperbarui dengan entri segarkan log.', 'info');
+                  }}
+                  className="text-stone-500 hover:text-emerald-500 dark:hover:text-emerald-400 select-none cursor-pointer font-bold transition"
+                >
+                  Segarkan Log
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       {portal === 'admin' ? (
         // ----------------------------------------------------
         // ADMIN PORTAL - SEPARATE PAGE WITH RESPONSIVE LEFT SIDEBAR
@@ -495,7 +671,7 @@ export default function App() {
           )}
 
           {/* Admin Left Sidebar */}
-          <aside className={`fixed md:sticky top-0 bottom-0 left-0 z-50 h-screen w-64 bg-[#081C15] text-stone-100 flex flex-col shrink-0 border-r border-[#1B4332]/40 transition-transform duration-300 ${isAdminSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'} overflow-hidden shadow-2xl md:shadow-none`}>
+          <aside className={`fixed md:sticky top-0 bottom-0 left-0 z-50 h-screen w-64 bg-[#081C15] text-stone-100 flex flex-col shrink-0 border-r border-[#1B4332]/40 transition duration-300 md:hover:translate-x-1 hover:shadow-2xl hover:shadow-emerald-950/40 ${isAdminSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'} overflow-hidden shadow-2xl md:shadow-none`}>
             {/* Sidebar Brand header with enlarged seal & Close button */}
             <div className="p-6 border-b border-[#1B4332]/30 flex flex-col items-center text-center gap-3 relative shrink-0">
               {/* Close Button on Mobile */}
@@ -528,58 +704,213 @@ export default function App() {
             </div>
 
             {/* Sidebar Navigation */}
-            <nav className="flex-1 p-4 space-y-1 overflow-y-auto scrollbar-thin scrollbar-thumb-emerald-800/45 scrollbar-track-transparent">
-              <div className="text-[9px] text-[#2D6A4F] font-bold uppercase tracking-widest px-3 mb-2.5 font-sans">Menu Utama</div>
-              
-              <button
-                onClick={() => {
-                  setAdminSubTab('kelola');
-                  setIsAdminSidebarOpen(false);
-                  speakText("Membuka Kelola Berkas Masuk");
-                }}
-                className={`w-full px-3 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2.5 text-left ${
-                  adminSubTab === 'kelola'
-                    ? 'bg-[#1B4332] text-white shadow-sm'
-                    : 'text-stone-300 hover:bg-[#1B4332]/30 hover:text-white'
-                }`}
+            <div className="flex-1 relative overflow-hidden flex flex-col h-[calc(100vh-210px)] md:h-[calc(100vh-250px)]">
+              <nav 
+                className="flex-1 p-4 space-y-3 overflow-y-auto overscroll-y-contain scrollbar-hide" 
+                id="admin-sidebar-nav"
+                ref={adminSidebarNavRef}
+                onKeyDown={handleSidebarKeyDown}
               >
-                <FolderOpen className="w-4 h-4 text-emerald-400" />
-                <span>Kelola Berkas Masuk</span>
-              </button>
+                {/* Search Input Filter */}
+                <div className="px-1 mb-3 sticky top-0 bg-[#081C15]/95 backdrop-blur-md pb-2 z-10">
+                  <div className="relative font-sans">
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#2D6A4F]" />
+                    <input
+                      ref={sidebarSearchInputRef}
+                      type="text"
+                      className="w-full bg-[#05130E]/90 border border-[#1B4332]/50 rounded-lg pl-8 pr-12 py-1.5 text-xs text-stone-100 placeholder-stone-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition-all font-medium"
+                      placeholder="Cari Menu... (Ctrl+K)"
+                      value={sidebarSearchQuery}
+                      onChange={(e) => setSidebarSearchQuery(e.target.value)}
+                    />
+                    {sidebarSearchQuery ? (
+                      <button
+                        onClick={() => setSidebarSearchQuery('')}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 text-stone-400 hover:text-white rounded bg-stone-850 hover:bg-stone-850 transition"
+                        title="Bersihkan Pencarian"
+                      >
+                        <X className="w-2.5 h-2.5" />
+                      </button>
+                    ) : (
+                      <kbd className="absolute right-2 top-1/2 -translate-y-1/2 px-1 py-0.5 bg-[#1B4332]/60 text-[#52B788] text-[8px] rounded font-mono border border-[#2D6A4F]/40 pointer-events-none">
+                        Ctrl K
+                      </kbd>
+                    )}
+                  </div>
+                </div>
 
-              <button
-                onClick={() => {
-                  setAdminSubTab('rancang');
-                  setIsAdminSidebarOpen(false);
-                  speakText("Membuka Perancang Formulir Layanan");
-                }}
-                className={`w-full px-3 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2.5 text-left ${
-                  adminSubTab === 'rancang'
-                    ? 'bg-[#1B4332] text-white shadow-sm'
-                    : 'text-stone-300 hover:bg-[#1B4332]/30 hover:text-white'
-                }`}
-              >
-                <Settings className="w-4 h-4 text-emerald-400" />
-                <span>Rancang Layanan Baru</span>
-              </button>
+                {/* Quick Actions Panel */}
+                { !sidebarSearchQuery && (
+                  <div className="px-1 mb-4">
+                    <div className="text-[9px] text-[#2D6A4F] font-bold uppercase tracking-widest px-1 mb-2 font-sans flex items-center gap-1.5">
+                      <Sparkles className="w-2.5 h-2.5 text-emerald-400 shrink-0" />
+                      <span>Aksi Cepat Admin</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAdminSubTab('rancang');
+                          setIsAdminSidebarOpen(false);
+                          addToast('Membuka perancang pembuatan berkas/formulir baru', 'success');
+                          speakText('Membuka perancang layanan baru');
+                        }}
+                        className="flex flex-col items-center justify-center p-2 rounded-xl bg-gradient-to-b from-[#113124]/90 to-[#0A1F16]/95 border border-[#1B4332]/60 hover:border-emerald-500/50 hover:scale-105 active:scale-95 text-stone-200 hover:text-white transition-all duration-200 ease-out group text-center gap-1"
+                      >
+                        <Plus className="w-4 h-4 text-emerald-400 group-hover:rotate-90 transition-transform duration-300" />
+                        <span className="text-[9px] font-extrabold leading-tight">Buat Berkas</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsActivityLogModalOpen(true);
+                          speakText('Membuka catatan riwayat keamanan dan aktivitas admin');
+                        }}
+                        className="flex flex-col items-center justify-center p-2 rounded-xl bg-gradient-to-b from-[#113124]/90 to-[#0A1F16]/95 border border-[#1B4332]/60 hover:border-emerald-500/50 hover:scale-105 active:scale-95 text-stone-200 hover:text-white transition-all duration-200 ease-out group text-center gap-1"
+                      >
+                        <Activity className="w-4 h-4 text-emerald-400 group-hover:animate-pulse" />
+                        <span className="text-[9px] font-extrabold leading-tight">Log Aktivitas</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
 
-              <div className="pt-6 border-t border-[#1B4332]/25 mt-6">
-                <div className="text-[9px] text-[#2D6A4F] font-bold uppercase tracking-widest px-3 mb-2.5 font-sans">Portal Publik</div>
-                
-                <button
-                  onClick={() => {
-                    setPortal('guest');
-                    setActiveTab('beranda');
-                    setIsAdminSidebarOpen(false);
-                    speakText("Membuka Portal Website Utama");
-                  }}
-                  className="w-full px-3 py-2.5 rounded-xl text-xs font-semibold text-rose-300 hover:bg-rose-950/20 hover:text-rose-200 transition flex items-center gap-2.5 text-left"
-                >
-                  <LogOut className="w-4 h-4 text-rose-400" />
-                  <span>Kembali ke Website</span>
-                </button>
-              </div>
-            </nav>
+                {/* Separator - Pembatas Visual di Bawah Quick Actions */}
+                { !sidebarSearchQuery && (
+                  <div className="mx-1 my-3 border-t border-[#133124] shadow-[0_1px_0_rgba(255,255,255,0.02)]" />
+                )}
+
+                {/* Collapsible Group 1: Menu Utama */}
+                { (showKelolaBerkas || showRancangLayanan) && (
+                  <div className="space-y-1">
+                    <button
+                      type="button"
+                      onClick={() => setIsMenuUtamaOpen(!isMenuUtamaOpen)}
+                      className="w-full text-[9px] text-[#2D6A4F] hover:text-emerald-400 font-bold uppercase tracking-widest px-3 py-1 flex items-center justify-between transition-all duration-200 hover:scale-105 active:scale-95 text-left"
+                      aria-expanded={isMenuUtamaOpen || sidebarSearchQuery !== ''}
+                    >
+                      <span className="font-sans">Menu Utama</span>
+                      {(isMenuUtamaOpen || sidebarSearchQuery !== '') ? (
+                        <ChevronDown className="w-3 h-3 text-emerald-500/80" />
+                      ) : (
+                        <ChevronUp className="w-3 h-3 text-[#2D6A4F]" />
+                      )}
+                    </button>
+
+                    {(isMenuUtamaOpen || sidebarSearchQuery !== '') && (
+                      <div className="space-y-1.5 pl-1 pt-1">
+                        {showKelolaBerkas && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setAdminSubTab('kelola');
+                              setIsAdminSidebarOpen(false);
+                              speakText("Membuka Kelola Berkas Masuk");
+                            }}
+                            data-active={adminSubTab === 'kelola'}
+                            className={`w-full px-3 py-2.5 transition-all duration-200 hover:scale-105 active:scale-95 flex items-center justify-between text-left border-l-4 text-xs ${
+                              adminSubTab === 'kelola'
+                                ? 'bg-[#1B4332] text-white shadow-sm border-l-emerald-400 pl-2 rounded-r-xl rounded-l-none font-bold'
+                                : 'text-stone-300 hover:bg-[#1B4332]/30 hover:text-white border-l-transparent pl-2 rounded-xl font-bold'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <FolderOpen className="w-4 h-4 text-emerald-400 shrink-0" />
+                              <span className="truncate">Kelola Berkas Masuk</span>
+                            </div>
+                            {pendingCount > 0 && (
+                              <span className="bg-amber-500 text-[#081C15] text-[9px] px-1.5 py-0.5 rounded-full font-black animate-pulse shadow-sm shrink-0">
+                                {pendingCount}
+                              </span>
+                            )}
+                          </button>
+                        )}
+
+                        {showRancangLayanan && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setAdminSubTab('rancang');
+                              setIsAdminSidebarOpen(false);
+                              speakText("Membuka Perancang Formulir Layanan");
+                            }}
+                            data-active={adminSubTab === 'rancang'}
+                            className={`w-full px-3 py-2.5 transition-all duration-200 hover:scale-105 active:scale-95 flex items-center gap-2.5 text-left border-l-4 text-xs ${
+                              adminSubTab === 'rancang'
+                                ? 'bg-[#1B4332] text-white shadow-sm border-l-emerald-400 pl-2 rounded-r-xl rounded-l-none font-bold'
+                                : 'text-stone-300 hover:bg-[#1B4332]/30 hover:text-white border-l-transparent pl-2 rounded-xl font-bold'
+                            }`}
+                          >
+                            <Settings className="w-4 h-4 text-emerald-400 shrink-0" />
+                            <span className="truncate">Rancang Layanan Baru</span>
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Separator - Pembatas Visual yang Lebih Tegas */}
+                { ((showKelolaBerkas || showRancangLayanan) && showKembaliWebsite) && (
+                  <div className="mx-2 my-4 border-t border-[#1B4332]/50 shadow-[0_1px_0_rgba(255,255,255,0.03)]" />
+                )}
+
+                {/* Collapsible Group 2: Portal Publik */}
+                { showKembaliWebsite && (
+                  <div className="space-y-1">
+                    <button
+                      type="button"
+                      onClick={() => setIsPortalPublikOpen(!isPortalPublikOpen)}
+                      className="w-full text-[9px] text-[#2D6A4F] hover:text-emerald-400 font-bold uppercase tracking-widest px-3 py-1 flex items-center justify-between transition-all duration-200 hover:scale-105 active:scale-95 text-left"
+                      aria-expanded={isPortalPublikOpen || sidebarSearchQuery !== ''}
+                    >
+                      <span className="font-sans">Portal Publik</span>
+                      {(isPortalPublikOpen || sidebarSearchQuery !== '') ? (
+                        <ChevronDown className="w-3 h-3 text-emerald-500/80" />
+                      ) : (
+                        <ChevronUp className="w-3 h-3 text-[#2D6A4F]" />
+                      )}
+                    </button>
+
+                    {(isPortalPublikOpen || sidebarSearchQuery !== '') && (
+                      <div className="space-y-1.5 pl-1 pt-1">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPortal('guest');
+                            setActiveTab('beranda');
+                            setIsAdminSidebarOpen(false);
+                            speakText("Membuka Portal Website Utama");
+                          }}
+                          className="w-full px-3 py-2.5 transition-all duration-200 hover:scale-105 active:scale-95 flex items-center gap-2.5 text-left border-l-4 border-l-transparent pl-2 rounded-xl text-xs font-semibold text-rose-300 hover:bg-rose-950/20 hover:text-rose-200"
+                        >
+                          <LogOut className="w-4 h-4 text-rose-400 shrink-0" />
+                          <span className="truncate">Kembali ke Website</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* No Results Fallback */}
+                {(!showKelolaBerkas && !showRancangLayanan && !showKembaliWebsite) && (
+                  <div className="py-8 px-4 text-center text-stone-500 text-xs">
+                    <HelpCircle className="w-8 h-8 text-stone-600 mx-auto mb-2 opacity-60" />
+                    <p className="font-medium">Menu tidak ditemukan</p>
+                    <button 
+                      type="button"
+                      onClick={() => setSidebarSearchQuery('')} 
+                      className="text-emerald-400 font-bold hover:underline mt-1.5 block w-full text-center"
+                    >
+                      Bersihkan Pencarian
+                    </button>
+                  </div>
+                )}
+              </nav>
+
+              {/* Elegant scroll fade indicator at the bottom of the navigation area */}
+              <div className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-[#081C15] via-[#081C15]/75 to-transparent pointer-events-none z-10 animate-pulse" />
+            </div>
 
             <div className="p-4 bg-[#05130E] border-t border-[#1B4332]/25 text-[9px] text-stone-500 font-mono text-center shrink-0">
               DLH Pontianak Admin Portal
@@ -620,6 +951,34 @@ export default function App() {
 
             {/* Main Content Body with Switch Transitions */}
             <main className="flex-1 p-6 md:p-8 overflow-y-auto">
+              {/* Hierarchical Navigation Breadcrumb */}
+              <div id="admin-breadcrumbs" className="mb-6 flex items-center gap-2 text-[10px] sm:text-[11px] text-stone-500 dark:text-stone-400 font-medium select-none">
+                <span 
+                  onClick={() => {
+                    setPortal('guest');
+                    setActiveTab('beranda');
+                    speakText("Kembali ke portal utama");
+                  }} 
+                  className="hover:text-[#1B4332] dark:hover:text-emerald-400 transition cursor-pointer font-bold"
+                >
+                  SobatHijau
+                </span>
+                <span className="text-stone-300 dark:text-stone-700">/</span>
+                <span 
+                  onClick={() => {
+                    setAdminSubTab('kelola');
+                    speakText("Membuka halaman kelola berkas masuk");
+                  }} 
+                  className="hover:text-[#1B4332] dark:hover:text-emerald-400 transition cursor-pointer font-bold"
+                >
+                  Panel Admin
+                </span>
+                <span className="text-stone-300 dark:text-stone-700">/</span>
+                <span className="text-emerald-650 dark:text-emerald-400 font-bold bg-emerald-50 dark:bg-emerald-950/30 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-900/40">
+                  {adminSubTab === 'kelola' ? 'Kelola Berkas Masuk' : 'Rancang Layanan Baru'}
+                </span>
+              </div>
+
               <AnimatePresence mode="wait">
                 <motion.div
                   key={adminSubTab}
