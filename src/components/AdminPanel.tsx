@@ -33,7 +33,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     try {
       const cleanStr = submittedAtStr.replace(' ', 'T');
       const submitDate = new Date(cleanStr);
-      const now = new Date('2026-06-02T14:12:57Z'); // Gunakan format waktu referensi sistem agar konsisten
+      const now = new Date();
       if (isNaN(submitDate.getTime())) return 0;
       
       let businessDays = 0;
@@ -107,269 +107,121 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   };
 
   return (
-    <div className="space-y-8" id="admin-panel-container">
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <div className="bg-white dark:bg-stone-900 p-4 rounded-xl border border-slate-100 dark:border-stone-800 text-left">
-          <p className="text-[10px] uppercase font-bold text-slate-400">Total Berkas Masuk</p>
-          <p className="text-xl font-black text-slate-800 dark:text-stone-100 mt-1">{stats.total}</p>
-          <span className="text-[9px] text-emerald-700 bg-emerald-50 dark:bg-stone-800 dark:text-emerald-300 px-1.5 py-0.5 rounded font-mono mt-2 inline-block">Database Terpusat</span>
+    <div className="space-y-6" id="admin-panel-container">
+      {/* KPI Stats (Ringkas) */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-white dark:bg-stone-900 p-4 rounded-xl border border-slate-200 dark:border-stone-800 shadow-sm flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-bold text-slate-500 uppercase">Total Berkas</p>
+            <p className="text-xl font-black text-slate-800 dark:text-stone-100">{stats.total}</p>
+          </div>
+          <Database className="w-8 h-8 text-emerald-100 dark:text-stone-800" />
         </div>
-        <div className="bg-white dark:bg-stone-900 p-4 rounded-xl border border-slate-100 dark:border-stone-800 text-left bg-gradient-to-br from-white to-rose-50/20 dark:from-stone-900 dark:to-rose-950/10">
-          <p className="text-[10px] uppercase font-bold text-rose-500">Mendekati Tenggat</p>
-          <p className="text-xl font-black text-rose-600 dark:text-rose-400 mt-1">{stats.urgent}</p>
-          <span className="text-[9px] text-rose-700 bg-rose-50 dark:bg-rose-950/40 dark:text-rose-300 px-1.5 py-0.5 rounded font-mono mt-2 inline-block animate-pulse-subtle">
-            {stats.urgent > 0 ? "⚠️ Tindakan Diperlukan" : "Aman Sejahtera"}
-          </span>
+        <div className="bg-white dark:bg-stone-900 p-4 rounded-xl border border-rose-200 dark:border-rose-900/50 shadow-sm flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-bold text-rose-500 uppercase">Perlu Tindakan</p>
+            <p className="text-xl font-black text-rose-600">{stats.urgent}</p>
+          </div>
+          <AlertTriangle className="w-8 h-8 text-rose-100 dark:text-rose-900/30" />
         </div>
-        <div className="bg-white dark:bg-stone-900 p-4 rounded-xl border border-slate-100 dark:border-stone-800 text-left">
-          <p className="text-[10px] uppercase font-bold text-slate-400">Selesai Diterbitkan</p>
-          <p className="text-xl font-black text-green-700 dark:text-green-400 mt-1">{stats.selesai}</p>
-          <span className="text-[9px] text-green-700 bg-green-50 dark:bg-stone-800 dark:text-green-300 px-1.5 py-0.5 rounded font-mono mt-2 inline-block">SK Keluar</span>
+        <div className="bg-white dark:bg-stone-900 p-4 rounded-xl border border-slate-200 dark:border-stone-800 shadow-sm flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-bold text-slate-500 uppercase">Dalam Proses</p>
+            <p className="text-xl font-black text-amber-600">{stats.proses}</p>
+          </div>
+          <RefreshCcw className="w-8 h-8 text-amber-100 dark:text-stone-800" />
         </div>
-        <div className="bg-white dark:bg-stone-900 p-4 rounded-xl border border-slate-100 dark:border-stone-800 text-left">
-          <p className="text-[10px] uppercase font-bold text-slate-400">Dalam Proses Review</p>
-          <p className="text-xl font-black text-amber-600 dark:text-amber-400 mt-1">{stats.proses}</p>
-          <span className="text-[9px] text-amber-700 bg-amber-50 dark:bg-stone-800 dark:text-amber-300 px-1.5 py-0.5 rounded font-mono mt-2 inline-block">Butuh Approval</span>
-        </div>
-        <div className="bg-white dark:bg-stone-900 p-4 rounded-xl border border-slate-100 dark:border-stone-800 text-left">
-          <p className="text-[10px] uppercase font-bold text-slate-400">Ditolak/Revisi</p>
-          <p className="text-xl font-black text-rose-600 dark:text-rose-400 mt-1">{stats.ditolak}</p>
-          <span className="text-[9px] text-rose-700 bg-rose-50 dark:bg-stone-800 dark:text-rose-300 px-1.5 py-0.5 rounded font-mono mt-2 inline-block">Berkas Kurang</span>
+        <div className="bg-white dark:bg-stone-900 p-4 rounded-xl border border-slate-200 dark:border-stone-800 shadow-sm flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-bold text-slate-500 uppercase">Selesai</p>
+            <p className="text-xl font-black text-emerald-600">{stats.selesai}</p>
+          </div>
+          <Check className="w-8 h-8 text-emerald-100 dark:text-stone-800" />
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Main interactive table of submissions */}
-        <div className="lg:col-span-8 bg-white dark:bg-stone-900 p-6 rounded-2xl border border-slate-100 dark:border-stone-800 shadow-sm space-y-4">
-          
-          {/* Header and filters section */}
-          <div className="flex flex-col gap-4 border-b border-slate-100 dark:border-stone-800 pb-4">
-            <div>
-              <h4 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <Database className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
-                Panel Admin: Manajemen Berkas Lapangan DLH
-              </h4>
-              <p className="text-xs text-slate-400 mt-0.5">Ubah status alur kerja warga, cari permohonan, atau pantau berkas yang melebihi batas waktu pelayanan.</p>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 bg-white dark:bg-stone-900 p-6 rounded-2xl border border-slate-200 dark:border-stone-800 shadow-sm">
+          <div className="flex flex-col sm:flex-row gap-3 justify-between items-center mb-4">
+            <div className="relative w-full sm:w-64">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input type="text" placeholder="Cari berkas..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full pl-9 pr-4 py-2 text-xs rounded-xl border border-slate-200 dark:border-stone-700 bg-slate-50 dark:bg-stone-850 focus:outline-none focus:border-emerald-500" />
             </div>
-
-            {/* Advanced Search & Filtering Toolbar */}
-            <div className="flex flex-col md:flex-row gap-3 w-full justify-between items-stretch md:items-center">
-              {/* Search text input */}
-              <div className="relative flex-1 max-w-sm">
-                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  placeholder="Cari Pemohon, Layanan, atau Kode Berkas..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-4 py-1.5 text-xs rounded-xl border border-slate-200 dark:border-stone-800 bg-slate-50/50 dark:bg-stone-950 text-slate-800 dark:text-stone-300 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition"
-                  id="admin-search-input"
-                />
-              </div>
-
-              {/* Status filter buttons pills */}
-              <div className="flex flex-wrap gap-1 bg-slate-50 dark:bg-stone-950 p-1 rounded-xl border border-slate-100 dark:border-stone-850 self-start">
-                {[
-                  { key: 'ALL', label: 'Semua' },
-                  { key: 'DIAJUKAN', label: 'Diajukan' },
-                  { key: 'SURVEY_TEKNIS', label: 'Survei' },
-                  { key: 'SELESAI', label: 'Selesai' },
-                  { key: 'DITOLAK', label: 'Ditolak' },
-                  { key: 'URGENT', label: '⏳ >5 Hari' }
-                ].map(opt => (
-                  <button
-                    key={opt.key}
-                    onClick={() => {
-                      setFilter(opt.key);
-                      onSpeak(`Menyaring berkas: ${opt.label}`);
-                    }}
-                    className={`text-[10px] font-bold px-2.5 py-1 rounded-lg transition whitespace-nowrap ${
-                      filter === opt.key 
-                        ? 'bg-emerald-700 text-white shadow-sm'
-                        : opt.key === 'URGENT'
-                        ? 'text-rose-600 dark:text-rose-450 hover:bg-rose-50 dark:hover:bg-rose-950/20'
-                        : 'text-slate-500 hover:text-slate-900 dark:hover:text-stone-150'
-                    }`}
-                  >
-                    {opt.label}
-                    {opt.key === 'URGENT' && stats.urgent > 0 && (
-                      <span className="ml-1 bg-rose-500 text-white rounded-full px-1.5 py-px text-[8px] font-mono animate-pulse">
-                        {stats.urgent}
-                      </span>
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
+            <select value={filter} onChange={(e) => setFilter(e.target.value)} className="w-full sm:w-auto px-4 py-2 text-xs rounded-xl border border-slate-200 dark:border-stone-700 bg-white dark:bg-stone-900 focus:outline-none">
+              <option value="ALL">Semua Status</option>
+              <option value="DIAJUKAN">Diajukan</option>
+              <option value="SURVEY_TEKNIS">Survei</option>
+              <option value="SELESAI">Selesai</option>
+              <option value="DITOLAK">Ditolak</option>
+              <option value="URGENT">⏳ &gt; 5 Hari</option>
+            </select>
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full text-xs text-left">
-              <thead>
-                <tr className="border-b border-slate-100 dark:border-stone-800 text-slate-400 font-mono text-[10px] uppercase">
-                  <th className="py-3 px-2">KODE BERKAS</th>
-                  <th className="py-3 px-2">PEMOHON / PERUSAHAAN</th>
-                  <th className="py-3 px-2">JENIS LAYANAN</th>
-                  <th className="py-3 px-2 text-center">STATUS SEKARANG</th>
-                  <th className="py-3 px-2 text-right">AKSI</th>
+              <thead className="bg-slate-50 dark:bg-stone-850 text-slate-500 dark:text-stone-400 uppercase font-bold text-[10px]">
+                <tr>
+                  <th className="py-3 px-4 rounded-tl-lg">Kode / Tanggal</th>
+                  <th className="py-3 px-4">Layanan & Pemohon</th>
+                  <th className="py-3 px-4">Status</th>
+                  <th className="py-3 px-4 text-right rounded-tr-lg">Aksi</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-50 dark:divide-stone-850">
-                {filteredSubmissions.length > 0 ? (
-                  filteredSubmissions.map((sub) => {
-                    const daysElapsed = getElapsedBusinessDays(sub.submittedAt);
-                    const isUrgent = isUrgentSubmission(sub);
-
-                    return (
-                      <tr 
-                        key={sub.id} 
-                        className={`transition-colors duration-200 border-l-4 ${
-                          isUrgent 
-                            ? 'bg-rose-50/50 hover:bg-rose-100/75 dark:bg-rose-950/10 dark:hover:bg-rose-900/20 border-l-rose-500' 
-                            : 'hover:bg-slate-50/50 dark:hover:bg-stone-850/30 border-l-transparent'
-                        }`}
-                      >
-                        <td className="py-3.5 px-2 font-mono font-bold text-emerald-950 dark:text-emerald-400">
-                          <div className="flex flex-col">
-                            <span>{sub.id}</span>
-                            {isUrgent && (
-                              <span className="inline-flex items-center gap-1 text-[8px] font-black text-rose-700 bg-rose-100 dark:text-rose-300 dark:bg-rose-950/60 px-1.5 py-0.5 rounded mt-1 shadow-sm w-fit animate-pulse">
-                                <AlertTriangle className="w-2.5 h-2.5 text-rose-600 dark:text-rose-450 shrink-0" />
-                                <span>KRITIS {daysElapsed} HARI KERJA</span>
-                              </span>
-                            )}
-                          </div>
-                        </td>
-                        <td className="py-3.5 px-2">
-                          <div className="font-semibold text-slate-800 dark:text-stone-200">{sub.applicantName}</div>
-                          <div className="text-[10px] text-slate-400 mt-0.5 font-mono flex items-center gap-1">
-                            <Clock className="w-3 h-3 text-slate-400" />
-                            <span>{sub.submittedAt}</span>
-                          </div>
-                        </td>
-                        <td className="py-3.5 px-2 text-slate-600 dark:text-stone-400 max-w-[150px] truncate" title={sub.serviceName}>
-                          {sub.serviceName}
-                        </td>
-                        <td className="py-3.5 px-2 text-center">
-                          <span className={`px-2 py-0.5 text-[9px] font-bold rounded-full font-mono ${
-                            sub.status === 'SELESAI' 
-                              ? 'bg-green-100 text-green-800 dark:bg-green-950/30 dark:text-green-300' 
-                              : sub.status === 'DITOLAK' 
-                              ? 'bg-rose-100 text-rose-800 dark:bg-rose-950/30 dark:text-rose-300' 
-                              : 'bg-amber-100 text-amber-800 dark:bg-amber-950/30 dark:text-amber-300'
-                          }`}>
-                            {sub.status.replace('_', ' ')}
-                          </span>
-                        </td>
-                        <td className="py-3.5 px-2 text-right">
-                          <div className="flex items-center justify-end gap-1.5">
-                            <button
-                              onClick={() => onSelectTracking(sub.id)}
-                              className="p-1 px-1.5 rounded text-indigo-600 hover:bg-indigo-50 dark:hover:bg-stone-800 text-[10px] font-bold transition flex items-center gap-0.5"
-                              title="Tinjau Timeline Visual"
-                            >
-                              <Eye className="w-3" />
-                              <span>Lacak</span>
-                            </button>
-                            <button
-                              onClick={() => startChangingStatus(sub)}
-                              className="p-1 px-1.5 rounded text-amber-600 hover:bg-amber-50 dark:hover:bg-stone-800 text-[10px] font-bold transition flex items-center gap-0.5"
-                              title="Ubah Status Kerja"
-                            >
-                              <Edit3 className="w-3" />
-                              <span>Ubah</span>
-                            </button>
-                            <button
-                              onClick={() => {
-                                onDeleteSubmission(sub.id);
-                                onSpeak(`Menghapus berkas ${sub.id}`);
-                              }}
-                              className="p-1 rounded text-rose-500 hover:bg-rose-50 dark:hover:bg-stone-800 transition"
-                              title="Hapus Berkas dari Portal"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })
-                ) : (
-                  <tr>
-                    <td colSpan={5} className="text-center py-8 text-slate-400">
-                      Tidak ada data berkas yang sesuai dengan kriteria filter atau kata kunci pencarian.
+              <tbody className="divide-y divide-slate-100 dark:divide-stone-800">
+                {filteredSubmissions.length > 0 ? filteredSubmissions.map(sub => (
+                  <tr key={sub.id} className="hover:bg-slate-50/50 dark:hover:bg-stone-800/30 transition">
+                    <td className="py-3 px-4">
+                      <p className="font-mono font-bold text-emerald-700 dark:text-emerald-400">{sub.id}</p>
+                      <p className="text-[10px] text-slate-400 mt-0.5">{sub.submittedAt}</p>
+                    </td>
+                    <td className="py-3 px-4">
+                      <p className="font-bold text-slate-800 dark:text-stone-200">{sub.applicantName}</p>
+                      <p className="text-[10px] text-slate-500 max-w-[200px] truncate">{sub.serviceName}</p>
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className={`px-2.5 py-1 text-[9px] font-bold rounded-full ${sub.status === 'SELESAI' ? 'bg-emerald-100 text-emerald-800' : sub.status === 'DITOLAK' ? 'bg-rose-100 text-rose-800' : 'bg-amber-100 text-amber-800'}`}>{sub.status.replace('_', ' ')}</span>
+                    </td>
+                    <td className="py-3 px-4 text-right flex items-center justify-end gap-2">
+                      <button onClick={() => onSelectTracking(sub.id)} className="p-1.5 rounded-lg text-indigo-600 hover:bg-indigo-50 dark:hover:bg-stone-800 transition" title="Lacak"><Eye className="w-4 h-4" /></button>
+                      <button onClick={() => startChangingStatus(sub)} className="p-1.5 rounded-lg text-amber-600 hover:bg-amber-50 dark:hover:bg-stone-800 transition" title="Ubah Status"><Edit3 className="w-4 h-4" /></button>
+                      <button onClick={() => onDeleteSubmission(sub.id)} className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-stone-800 transition" title="Hapus"><Trash2 className="w-4 h-4" /></button>
                     </td>
                   </tr>
-                )}
+                )) : <tr><td colSpan={4} className="text-center py-8 text-slate-400">Tidak ada berkas.</td></tr>}
               </tbody>
             </table>
           </div>
         </div>
 
-        {/* Change status dialog panel */}
-        <div className="lg:col-span-4">
+        <div className="lg:col-span-1">
           {selectedSubId ? (
-            <div className="bg-amber-500/5 dark:bg-stone-900 border-2 border-amber-500/20 p-5 rounded-2xl space-y-4 shadow-md text-slate-800 dark:text-stone-200">
-              <h5 className="font-bold text-xs text-amber-850 dark:text-amber-400 block border-b border-amber-500/10 pb-2">
-                ✒️ Perbarui Status Berkas {selectedSubId}
-              </h5>
-
+            <div className="bg-white dark:bg-stone-900 border border-slate-200 dark:border-stone-800 p-5 rounded-2xl space-y-4 shadow-sm">
+              <h5 className="font-bold text-sm text-slate-800 dark:text-stone-200">Ubah Status: {selectedSubId}</h5>
               <div>
-                <label className="block text-[10px] font-bold text-slate-500 dark:text-stone-400 uppercase tracking-wider mb-1" htmlFor="admin-status-select">
-                  Alur Tahapan Kerja Baru
-                </label>
-                <select
-                  id="admin-status-select"
-                  value={newStatus}
-                  onChange={(e) => setNewStatus(e.target.value as SubmissionStatus)}
-                  className="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 dark:border-stone-700 bg-white text-slate-800 dark:bg-stone-850 dark:text-stone-100 focus:outline-none"
-                >
-                  <option value="DIAJUKAN">DIAJUKAN (Baru Masuk)</option>
+                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Status Baru</label>
+                <select value={newStatus} onChange={(e) => setNewStatus(e.target.value as SubmissionStatus)} className="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 dark:border-stone-700 bg-slate-50 dark:bg-stone-850 focus:outline-none">
+                  <option value="DIAJUKAN">DIAJUKAN</option>
                   <option value="VERIFIKASI_ADMIN">VERIFIKASI ADMINISTRASI</option>
                   <option value="SURVEY_TEKNIS">SURVEY TEKNIS / LAPANGAN</option>
                   <option value="PROSES_REKOMENDASI">PROSES REKOMENDASI KADIN</option>
-                  <option value="SELESAI">SELESAI & TERBITKAN DOKUMEN</option>
-                  <option value="DITOLAK">DITOLAK (Berkas Kurang/Salah)</option>
+                  <option value="SELESAI">SELESAI</option>
+                  <option value="DITOLAK">DITOLAK</option>
                 </select>
               </div>
-
               <div>
-                <label className="block text-[10px] font-bold text-slate-500 dark:text-stone-400 uppercase tracking-wider mb-1" htmlFor="admin-notes-text">
-                  Catatan Tambahan Petugas (Akan Tampil di Lacak)
-                </label>
-                <textarea
-                  id="admin-notes-text"
-                  value={adminNotes}
-                  onChange={(e) => setAdminNotes(e.target.value)}
-                  placeholder="Misal: Dokumen KTP kurang jelas atau Lokasi survey di jadwalkan hari selasa."
-                  rows={3}
-                  className="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 dark:border-stone-700 bg-white text-slate-800 dark:bg-stone-850 dark:text-stone-100 focus:outline-none resize-none"
-                />
+                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Catatan Tambahan (Opsional)</label>
+                <textarea value={adminNotes} onChange={(e) => setAdminNotes(e.target.value)} rows={3} className="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 dark:border-stone-700 bg-slate-50 dark:bg-stone-850 focus:outline-none resize-none" placeholder="Tambahkan catatan untuk pemohon..." />
               </div>
-
               <div className="flex gap-2">
-                <button
-                  onClick={saveStatusChange}
-                  className="flex-1 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-lg text-xs transition"
-                >
-                  Simpan Status
-                </button>
-                <button
-                  onClick={() => setSelectedSubId(null)}
-                  className="px-3 py-2 bg-slate-200 hover:bg-slate-350 dark:bg-stone-800 dark:hover:bg-stone-700 font-bold rounded-lg text-xs transition text-slate-700 dark:text-stone-300"
-                >
-                  Batal
-                </button>
+                <button onClick={saveStatusChange} className="flex-1 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-lg text-xs transition">Simpan</button>
+                <button onClick={() => setSelectedSubId(null)} className="px-3 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-stone-800 text-slate-700 dark:text-stone-300 font-bold rounded-lg text-xs transition">Batal</button>
               </div>
             </div>
           ) : (
-            <div className="bg-indigo-50/25 dark:bg-stone-900 border border-indigo-200/40 p-5 rounded-2xl flex flex-col justify-center text-center text-slate-400 h-full min-h-[220px]">
-              <Sparkles className="w-8 h-8 text-indigo-400 mx-auto mb-2 animate-pulse" />
-              <p className="text-xs font-bold text-slate-600 dark:text-stone-350 leading-tight">Pengendali Berkas Pintar</p>
-              <p className="text-[10px] mt-1 max-w-xs mx-auto leading-relaxed">
-                Pilih aksi <span className="font-bold text-amber-600">"Ubah"</span> pada daftar berkas warga untuk meningkatkan tahapan kelolanya. Tahapan baru akan segera tercermin langsung pada timeline pelacakan secara dinamis!
-              </p>
+            <div className="bg-slate-50 dark:bg-stone-900 border border-slate-200 dark:border-stone-800 p-8 rounded-2xl flex flex-col justify-center items-center text-center text-slate-400 h-full">
+              <Edit3 className="w-8 h-8 mb-2 opacity-50" />
+              <p className="text-xs font-bold text-slate-600 dark:text-stone-400">Pilih Berkas</p>
+              <p className="text-[10px] mt-1">Klik ikon edit pada tabel untuk memperbarui status berkas.</p>
             </div>
           )}
         </div>

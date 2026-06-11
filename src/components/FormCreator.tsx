@@ -137,337 +137,126 @@ export const FormCreator: React.FC<FormCreatorProps> = ({ onSave, onSpeak }) => 
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8" id="form-creator-container">
-      {/* Visual Form Builder Settings */}
-      <div className="lg:col-span-7 bg-white dark:bg-stone-900 border border-emerald-100 dark:border-stone-800 p-6 rounded-2xl shadow-sm">
-        <h3 className="text-base font-bold text-slate-900 dark:text-stone-100 mb-2 flex items-center gap-2">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6" id="form-creator-container">
+      <div className="lg:col-span-6 bg-white dark:bg-stone-900 border border-slate-200 dark:border-stone-800 p-6 rounded-2xl shadow-sm">
+        <h3 className="text-sm font-bold text-slate-900 dark:text-stone-100 mb-6 flex items-center gap-2">
           <Settings className="w-5 h-5 text-emerald-700 dark:text-emerald-400" />
-          Rancang Formulir Layanan Dinamis Baru
+          Rancang Formulir Layanan Dinamis
         </h3>
-        <p className="text-xs text-slate-500 mb-6">
-          Sistem Sobat Hijau memungkinkan pembuat keputusan meluncurkan perizinan atau pengumpulan data lingkungan secara kilat dengan variabel input dinamis.
-        </p>
 
-        {/* Global info */}
-        <div className="space-y-4 mb-8">
+        <div className="space-y-4 mb-6">
+          <div>
+            <label className="block text-xs font-semibold text-slate-600 dark:text-stone-300 mb-1">Nama Layanan *</label>
+            <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 dark:border-stone-700 bg-slate-50 dark:bg-stone-850 focus:outline-none focus:border-emerald-500" placeholder="Misal: Izin Usaha Mikro" />
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-600 dark:text-stone-300 mb-1" htmlFor="service-name">
-                Nama Layanan/Permohonan <span className="text-red-500">*</span>
-              </label>
-              <input
-                id="service-name"
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Contoh: Sewa Kontainer Sampah Pasar"
-                className="w-full px-3 py-2 text-xs rounded-lg border border-emerald-100 dark:border-stone-700 bg-[#F9FBFA] focus:bg-white text-slate-800 dark:bg-stone-850 dark:text-stone-100 focus:outline-none focus:ring-1 focus:ring-[#2D6A4F]"
-              />
+              <label className="block text-xs font-semibold text-slate-600 dark:text-stone-300 mb-1">Kategori *</label>
+              <select value={category} onChange={e => setCategory(e.target.value as any)} className="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 dark:border-stone-700 bg-slate-50 dark:bg-stone-850 focus:outline-none focus:border-emerald-500">
+                <option value="Izin & Rekomendasi">Izin & Rekomendasi</option>
+                <option value="Laboratorium">Laboratorium</option>
+                <option value="Kemitraan & Edukasi">Kemitraan & Edukasi</option>
+                <option value="Layanan Umum">Layanan Umum</option>
+              </select>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-600 dark:text-stone-300 mb-1" htmlFor="service-category">
-                Kategori Layanan <span className="text-red-500">*</span>
-              </label>
-              <select
-                id="service-category"
-                value={category}
-                onChange={(e) => setCategory(e.target.value as ServiceTemplate['category'])}
-                className="w-full px-3 py-2 text-xs rounded-lg border border-emerald-100 dark:border-stone-700 bg-[#F9FBFA] text-slate-800 dark:bg-stone-850 dark:text-stone-100 focus:outline-none focus:ring-1 focus:ring-[#2D6A4F]"
-              >
-                <option value="Izin & Rekomendasi">Izin & Rekomendasi</option>
-                <option value="Laboratorium">Laboratorium (Pemeriksaan)</option>
-                <option value="Kemitraan & Edukasi">Kemitraan & Edukasi</option>
-                <option value="Layanan Umum">Layanan Umum / Pengaduan</option>
+              <label className="block text-xs font-semibold text-slate-600 dark:text-stone-300 mb-1">Ikon *</label>
+              <select value={icon} onChange={e => setIcon(e.target.value)} className="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 dark:border-stone-700 bg-slate-50 dark:bg-stone-850 focus:outline-none focus:border-emerald-500">
+                {iconsList.map(ic => <option key={ic.value} value={ic.value}>{ic.label}</option>)}
               </select>
             </div>
           </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-600 dark:text-stone-300 mb-1" htmlFor="service-desc">
-                Deskripsi Singkat Layanan <span className="text-red-500">*</span>
-              </label>
-              <input
-                id="service-desc"
-                type="text"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Misal: Peminjaman tempat kontainer pembuangan sampah berbayar."
-                className="w-full px-3 py-2 text-xs rounded-lg border border-emerald-100 dark:border-stone-700 bg-[#F9FBFA] focus:bg-white text-slate-800 dark:bg-stone-850 dark:text-stone-100 focus:outline-none focus:ring-1 focus:ring-[#2D6A4F]"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-slate-600 dark:text-stone-300 mb-1" htmlFor="service-icon">
-                Pilih Ikon Layanan <span className="text-red-500">*</span>
-              </label>
-              <select
-                id="service-icon"
-                value={icon}
-                onChange={(e) => setIcon(e.target.value)}
-                className="w-full px-3 py-2 text-xs rounded-lg border border-emerald-100 dark:border-stone-700 bg-[#F9FBFA] text-slate-800 dark:bg-stone-850 dark:text-stone-100 focus:outline-none focus:ring-1 focus:ring-[#2D6A4F]"
-              >
-                {iconsList.map(iconObj => (
-                  <option key={iconObj.value} value={iconObj.value}>{iconObj.label}</option>
-                ))}
-              </select>
-            </div>
+          <div>
+            <label className="block text-xs font-semibold text-slate-600 dark:text-stone-300 mb-1">Deskripsi *</label>
+            <input type="text" value={description} onChange={e => setDescription(e.target.value)} className="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 dark:border-stone-700 bg-slate-50 dark:bg-stone-850 focus:outline-none focus:border-emerald-500" placeholder="Deskripsi singkat..." />
           </div>
         </div>
 
-        {/* Dynamic Fields List */}
-        <div className="border-t border-slate-100 dark:border-stone-800 pt-5 mb-6">
-          <h4 className="text-xs font-bold text-emerald-950 dark:text-stone-200 mb-3 block">Field Dinamis Saat Ini</h4>
-          
-          <div className="space-y-2 mb-5">
-            {fields.map((field, idx) => (
-              <div 
-                key={field.id}
-                className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-stone-850/60 border border-slate-100 dark:border-stone-800 text-xs"
-              >
-                <div>
-                  <div className="flex items-center gap-1.5 font-semibold text-slate-700 dark:text-stone-200">
-                    <span>{field.label}</span>
-                    {field.required && <span className="text-red-500 text-[10px]">*</span>}
-                    <span className="text-[9px] font-mono font-normal px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 dark:bg-stone-700 dark:text-emerald-300">
-                      t:{field.type}
-                    </span>
-                  </div>
-                  {field.placeholder && (
-                    <p className="text-[10px] text-slate-400 mt-1">Hint: {field.placeholder}</p>
-                  )}
-                  {field.options && (
-                    <p className="text-[10px] text-emerald-600 mt-0.5">Opsi: {field.options.join(', ')}</p>
-                  )}
+        <div className="mb-6 space-y-2 border-t border-slate-100 dark:border-stone-800 pt-4">
+          <h4 className="text-xs font-bold text-slate-700 dark:text-stone-200 mb-3">Field yang Ditetapkan ({fields.length})</h4>
+          {fields.map((f, i) => (
+            <div key={f.id} className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-stone-850 border border-slate-100 dark:border-stone-800 text-xs">
+              <div>
+                <div className="flex items-center gap-1.5 font-semibold text-slate-700 dark:text-stone-200">
+                  <span>{f.label}</span>{f.required && <span className="text-rose-500">*</span>}
+                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 dark:bg-stone-800 dark:text-emerald-400 font-mono">{f.type}</span>
                 </div>
-                
-                {/* Basic fields like name/phone shouldn't be deleted so we keep minimum core */}
-                {idx > 1 ? (
-                  <button
-                    onClick={() => removeField(idx)}
-                    className="p-1 text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/20 rounded transition"
-                    title="Hapus field ini"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+              </div>
+              {i > 1 ? (
+                <button onClick={() => removeField(i)} className="p-1 text-rose-500 hover:bg-rose-50 rounded"><Trash2 className="w-4 h-4" /></button>
+              ) : (
+                <span className="text-[9px] text-slate-400 font-mono">Bawaan</span>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <div className="bg-slate-50 dark:bg-stone-850 p-4 rounded-xl border border-dashed border-slate-300 dark:border-stone-700 mb-6">
+          <p className="text-xs font-bold text-slate-700 dark:text-stone-300 mb-3 flex items-center gap-1"><Plus className="w-4 h-4" /> Tambah Field</p>
+          <div className="grid grid-cols-2 gap-3 mb-3">
+            <div className="col-span-2">
+              <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Label</label>
+              <input value={currentLabel} onChange={e => setCurrentLabel(e.target.value)} className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-stone-700 bg-white dark:bg-stone-900 focus:outline-none focus:border-emerald-500" placeholder="Misal: Alamat" />
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Tipe</label>
+              <select value={currentType} onChange={e => setCurrentType(e.target.value as any)} className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-stone-700 bg-white dark:bg-stone-900 focus:outline-none">
+                <option value="text">Teks Singkat</option>
+                <option value="number">Angka</option>
+                <option value="date">Tanggal</option>
+                <option value="select">Dropdown Select</option>
+                <option value="textarea">Teks Panjang</option>
+                <option value="checkbox_group">Checkbox Banyak</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Wajib?</label>
+              <select value={currentRequired ? 'yes' : 'no'} onChange={e => setCurrentRequired(e.target.value === 'yes')} className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-stone-700 bg-white dark:bg-stone-900 focus:outline-none">
+                <option value="yes">Ya (Wajib)</option>
+                <option value="no">Tidak</option>
+              </select>
+            </div>
+          </div>
+          {(currentType === 'select' || currentType === 'checkbox_group') && (
+            <div className="mb-3">
+              <label className="block text-[10px] font-bold text-amber-500 uppercase mb-1">Opsi (Pisah Koma) *</label>
+              <input value={currentOptions} onChange={e => setCurrentOptions(e.target.value)} className="w-full px-3 py-1.5 text-xs rounded-lg border border-amber-300 bg-amber-50/30 focus:outline-none focus:border-amber-500" placeholder="Opsi A, Opsi B" />
+            </div>
+          )}
+          <button onClick={addField} className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-lg text-xs flex items-center gap-1"><Plus className="w-3.5 h-3.5" /> Tambah Input</button>
+        </div>
+
+        {message && <div className={`p-3 rounded-lg flex items-center gap-2 mb-4 text-xs ${message.type === 'success' ? 'bg-green-50 text-green-800' : 'bg-rose-50 text-rose-800'}`}><AlertCircle className="w-4 h-4" />{message.text}</div>}
+
+        <button onClick={handleSave} className="w-full py-3 bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-bold rounded-xl transition flex justify-center items-center gap-2 shadow-sm"><Save className="w-4 h-4" /> Terbitkan Layanan</button>
+      </div>
+
+      <div className="lg:col-span-6 bg-slate-50 dark:bg-stone-950 border border-slate-200 dark:border-stone-850 rounded-2xl p-6 relative h-fit shadow-inner">
+        <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-6 flex items-center gap-2"><Eye className="w-4 h-4" /> Pratinjau Tampilan Warga</h4>
+        <div className="bg-white dark:bg-stone-900 p-5 rounded-xl border border-slate-100 dark:border-stone-800 shadow-sm pointer-events-none opacity-90">
+          <div className="text-center mb-5 pb-4 border-b border-dashed border-slate-200 dark:border-stone-800">
+            <h2 className="text-sm font-black text-slate-800 dark:text-stone-100">{name || 'Nama Formulir Layanan'}</h2>
+            <p className="text-[10px] text-slate-400 mt-1 italic">{description || 'Tuliskan deskripsi untuk pratinjau...'}</p>
+          </div>
+          <form className="space-y-4">
+            {fields.map(f => (
+              <div key={f.id}>
+                <label className="block text-xs font-semibold text-slate-600 dark:text-stone-300 mb-1">{f.label} {f.required && <span className="text-rose-500">*</span>}</label>
+                {f.type === 'textarea' ? (
+                  <textarea rows={2} className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-stone-800 bg-slate-50 dark:bg-stone-950 text-xs text-slate-400" placeholder={f.placeholder || '...'} />
+                ) : f.type === 'select' ? (
+                  <select className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-stone-800 bg-slate-50 dark:bg-stone-950 text-xs text-slate-400"><option>-- Pilih --</option></select>
+                ) : f.type === 'checkbox_group' ? (
+                  <div className="space-y-1 p-2 rounded-lg bg-slate-50 dark:bg-stone-950 border border-slate-100 dark:border-stone-800">
+                    {f.options?.map((o, idx) => <label key={idx} className="flex gap-2 text-xs text-slate-500 items-center"><input type="checkbox" className="rounded" />{o}</label>)}
+                  </div>
                 ) : (
-                  <span className="text-[9px] text-slate-400 font-mono italic">Wajib Bawaan</span>
+                  <input type="text" className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-stone-800 bg-slate-50 dark:bg-stone-950 text-xs text-slate-400" placeholder={f.placeholder || '...'} />
                 )}
               </div>
             ))}
-          </div>
-
-          {/* Add field box */}
-          <div className="bg-emerald-50/25 dark:bg-stone-850/30 p-4 rounded-xl border border-dashed border-emerald-200 dark:border-stone-850">
-            <p className="text-xs font-bold text-emerald-900 dark:text-emerald-400 mb-3 flex items-center gap-1">
-              <Plus className="w-4 h-4" />
-              <span>Tambah Input Variabel Form Baru ({name || 'Permohonan Baru'})</span>
-            </p>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
-              <div>
-                <label className="block text-[10px] uppercase tracking-wider font-bold text-slate-500 dark:text-stone-400 mb-1" htmlFor="input-label">
-                  Nama Label Pertanyaan/Input
-                </label>
-                <input
-                  id="input-label"
-                  type="text"
-                  value={currentLabel}
-                  onChange={(e) => setCurrentLabel(e.target.value)}
-                  placeholder="Misal: Durasi Sewa Kontainer"
-                  className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-stone-700 bg-white text-slate-800 dark:bg-stone-900 dark:text-stone-100 focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] uppercase tracking-wider font-bold text-slate-500 dark:text-stone-400 mb-1" htmlFor="input-type">
-                  Pilih Tanda/Tipe Kolom
-                </label>
-                <select
-                  id="input-type"
-                  value={currentType}
-                  onChange={(e) => setCurrentType(e.target.value as FieldType)}
-                  className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-stone-700 bg-white text-slate-800 dark:bg-stone-900 dark:text-stone-100 focus:outline-none"
-                >
-                  <option value="text">Teks Singkat (Text)</option>
-                  <option value="number">Teks Angka (Number)</option>
-                  <option value="date">Input Tanggal (Date)</option>
-                  <option value="select">Pilihan Tunggal (Select Dropdown)</option>
-                  <option value="textarea">Teks Deskripsi Panjang (Textarea)</option>
-                  <option value="checkbox_group">Pilihan Banyak (Checkbox Group)</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
-              <div>
-                <label className="block text-[10px] uppercase tracking-wider font-bold text-slate-500 dark:text-stone-400 mb-1" htmlFor="input-placeholder">
-                  Placeholder / Petunjuk Pengisian
-                </label>
-                <input
-                  id="input-placeholder"
-                  type="text"
-                  value={currentPlaceholder}
-                  onChange={(e) => setCurrentPlaceholder(e.target.value)}
-                  placeholder="Misal: Isikan besaran dalam hari atau jam"
-                  className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-stone-700 bg-white text-slate-800 dark:bg-stone-900 dark:text-stone-100 focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] uppercase tracking-wider font-bold text-slate-500 dark:text-stone-400 mb-1" htmlFor="input-req">
-                  Apakah Kolom ini Harus Diisi?
-                </label>
-                <select
-                  id="input-req"
-                  value={currentRequired ? 'yes' : 'no'}
-                  onChange={(e) => setCurrentRequired(e.target.value === 'yes')}
-                  className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-stone-700 bg-white text-slate-800 dark:bg-stone-900 dark:text-stone-100 focus:outline-none"
-                >
-                  <option value="yes">Ya (Mandatory)</option>
-                  <option value="no">Tidak (Optional)</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Options only for Select and Checkbox */}
-            {(currentType === 'select' || currentType === 'checkbox_group') && (
-              <div className="mb-4">
-                <label className="block text-[10px] uppercase tracking-wider font-bold text-amber-600 dark:text-amber-400 mb-1" htmlFor="input-options">
-                  Ketik Opsi Pilihan (Pisahkan dengan Tanda Koma) <span className="text-red-500">*</span>
-                </label>
-                <input
-                  id="input-options"
-                  type="text"
-                  value={currentOptions}
-                  onChange={(e) => setCurrentOptions(e.target.value)}
-                  placeholder="Contoh: Sampah Organik, Sampah Plastik, Sampah Kimia B3"
-                  className="w-full px-3 py-1.5 text-xs rounded-lg border border-amber-300 dark:border-stone-700 bg-white text-slate-800 dark:bg-stone-900 dark:text-amber-100 focus:outline-none"
-                />
-              </div>
-            )}
-
-            <button
-              onClick={addField}
-              className="px-4 py-2 bg-[#1B4332] hover:bg-[#2D6A4F] text-white font-bold rounded-lg text-xs flex items-center gap-1.5 transition"
-              id="btn-add-field"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              Masukkan Input ke Formulir
-            </button>
-          </div>
-        </div>
-
-        {/* Error / Success Message */}
-        {message && (
-          <div className={`p-3 rounded-lg flex items-center gap-2 mb-4 text-xs ${
-            message.type === 'success' 
-              ? 'bg-green-50 text-green-800 border border-green-200' 
-              : 'bg-rose-50 text-rose-800 border border-rose-200'
-          }`}>
-            <AlertCircle className="w-4 h-4 flex-shrink-0" />
-            <span>{message.text}</span>
-          </div>
-        )}
-
-        {/* Submit */}
-        <button
-          onClick={handleSave}
-          className="w-full py-3 bg-[#1B4332] hover:bg-[#2D6A4F] text-white text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5 shadow-sm"
-          id="btn-save-custom-form"
-        >
-          <Save className="w-4 h-4" />
-          <span>Terbitkan Layanan & Form Dinamis DLH</span>
-        </button>
-      </div>
-
-      {/* Renders dynamic field preview side-by-side */}
-      <div className="lg:col-span-5 space-y-6">
-        <div className="bg-[#F9FBFA] dark:bg-stone-950 p-6 rounded-2xl border border-emerald-100 dark:border-stone-850 flex flex-col h-full">
-          <div className="flex items-center justify-between border-b border-slate-200 dark:border-stone-800 pb-3 mb-4">
-            <h4 className="text-xs font-bold text-slate-700 dark:text-stone-300 flex items-center gap-1.5">
-              <Eye className="w-4 h-4 text-indigo-500" />
-              Pratinjau Formulir Berkas Pintar (Real-Time)
-            </h4>
-            <span className="text-[9px] px-2 py-0.5 rounded-full bg-slate-200 text-slate-700 dark:bg-stone-800 dark:text-stone-400 font-mono font-semibold">STABLE PREVIEW</span>
-          </div>
-
-          <div className="flex-1 bg-white dark:bg-stone-900 p-5 rounded-xl shadow-inner border border-slate-100 dark:border-stone-850">
-            <div className="text-center pb-4 mb-4 border-b border-dashed border-slate-100 dark:border-stone-800">
-              <span className="text-xs font-mono font-bold tracking-wider text-emerald-800 uppercase block dark:text-emerald-400">DINAS LINGKUNGAN HIDUP</span>
-              <h2 className="text-sm font-black text-slate-900 mt-1 dark:text-white">{name || 'Nama Formulir Anda'}</h2>
-              <p className="text-[10px] text-slate-400 mt-0.5 dark:text-stone-500 italic">{description || 'Tuliskan deskripsi formulir di samping untuk melihat pratinjau.'}</p>
-            </div>
-
-            {/* Mock fields */}
-            <form className="space-y-4" onSubmit={e => e.preventDefault()}>
-              {fields.map((field) => (
-                <div key={field.id} className="space-y-1">
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-stone-300">
-                    {field.label} {field.required && <span className="text-rose-500">*</span>}
-                  </label>
-                  
-                  {field.type === 'text' && (
-                    <input 
-                      type="text" 
-                      disabled
-                      placeholder={field.placeholder || "Simulasi ketikan..."}
-                      className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 bg-slate-50 dark:border-stone-800 dark:bg-stone-950 text-slate-400"
-                    />
-                  )}
-
-                  {field.type === 'number' && (
-                    <input 
-                      type="number" 
-                      disabled
-                      placeholder={field.placeholder || "Menerima angka..."}
-                      className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 bg-slate-50 dark:border-stone-800 dark:bg-stone-950 text-slate-400"
-                    />
-                  )}
-
-                  {field.type === 'date' && (
-                    <input 
-                      type="date" 
-                      disabled
-                      className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 bg-slate-50 dark:border-stone-800 dark:bg-stone-950 text-slate-400"
-                    />
-                  )}
-
-                  {field.type === 'textarea' && (
-                    <textarea 
-                      disabled
-                      placeholder={field.placeholder || "Simulasi paragraf..."}
-                      rows={2}
-                      className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 bg-slate-50 dark:border-stone-800 dark:bg-stone-950 text-slate-400 resize-none"
-                    />
-                  )}
-
-                  {field.type === 'select' && (
-                    <select disabled className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 bg-slate-50 dark:border-stone-800 dark:bg-stone-950 text-slate-400">
-                      <option>-- Pilih Salah Satu --</option>
-                      {field.options?.map((opt, oIdx) => (
-                        <option key={oIdx}>{opt}</option>
-                      ))}
-                    </select>
-                  )}
-
-                  {field.type === 'checkbox_group' && (
-                    <div className="space-y-1 bg-slate-50 dark:bg-stone-950 p-2 rounded-lg border border-slate-100 dark:border-stone-850">
-                      {field.options?.map((opt, oIdx) => (
-                        <label key={oIdx} className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-stone-400">
-                          <input type="checkbox" disabled className="rounded border-slate-300" />
-                          <span>{opt}</span>
-                        </label>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
-              
-              <div className="pt-4 flex justify-end">
-                <button disabled className="px-4 py-2 bg-slate-200 text-slate-400 text-xs rounded-lg cursor-not-allowed">
-                  Kirim Permohonan
-                </button>
-              </div>
-            </form>
-          </div>
+            <div className="pt-4 flex justify-end"><button className="px-5 py-2 bg-emerald-700 text-white text-xs font-bold rounded-lg opacity-50">Kirim</button></div>
+          </form>
         </div>
       </div>
     </div>
