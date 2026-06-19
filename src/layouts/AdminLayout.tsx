@@ -4,7 +4,7 @@ import { AdminPanel } from '../components/AdminPanel';
 import { ServiceManager } from '../components/ServiceManager';
 import { FormCreator } from '../components/FormCreator';
 import { motion, AnimatePresence } from 'motion/react';
-import { Menu } from 'lucide-react';
+import { Menu, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { AdminSidebar } from './AdminSidebar';
 
 interface AdminLayoutProps {
@@ -23,13 +23,15 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ adminSubTab, goAdmin, 
     addService, updateService, deleteService 
   } = useStore();
 
-  const [isAdminSidebarOpen, setIsAdminSidebarOpen] = React.useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = React.useState(false);
 
   return (
     <div className="flex w-full h-screen overflow-hidden text-[#081C15] dark:text-stone-100 bg-stone-100 dark:bg-stone-950 transition-colors duration-300">
       
-      {isAdminSidebarOpen && (
-        <div className="fixed inset-0 bg-black/60 z-40 md:hidden" onClick={() => setIsAdminSidebarOpen(false)} />
+      {/* Mobile overlay backdrop */}
+      {isSidebarOpen && (
+        <div className="fixed inset-0 bg-black/60 z-40 md:hidden" onClick={() => setIsSidebarOpen(false)} />
       )}
 
       <AdminSidebar 
@@ -37,18 +39,28 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ adminSubTab, goAdmin, 
         goAdmin={goAdmin} 
         goGuest={goGuest} 
         speakText={speakText} 
-        isAdminSidebarOpen={isAdminSidebarOpen}
-        setIsAdminSidebarOpen={setIsAdminSidebarOpen}
+        isSidebarOpen={isSidebarOpen}
+        setIsSidebarOpen={setIsSidebarOpen}
+        isCollapsed={isSidebarCollapsed}
       />
 
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
-        <header className="bg-white dark:bg-stone-900 border-b border-stone-200/55 dark:border-stone-850 px-4 md:px-8 py-5 flex items-center justify-between shrink-0">
+        <header className="bg-white dark:bg-stone-900 border-b border-stone-200/55 dark:border-stone-850 px-4 md:px-6 py-4 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
+            {/* Mobile: hamburger */}
             <button
-              onClick={() => setIsAdminSidebarOpen(true)}
+              onClick={() => setIsSidebarOpen(true)}
               className="p-2 -ml-1 rounded-xl text-[#081C15] dark:text-stone-100 hover:bg-slate-100 dark:hover:bg-stone-800 md:hidden transition"
             >
               <Menu className="w-5 h-5" />
+            </button>
+            {/* Desktop: collapse toggle */}
+            <button
+              onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+              className="p-2 -ml-1 rounded-xl text-stone-400 hover:text-[#1B4332] dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-stone-800 transition hidden md:flex"
+              title={isSidebarCollapsed ? 'Buka sidebar' : 'Tutup sidebar'}
+            >
+              {isSidebarCollapsed ? <PanelLeftOpen className="w-5 h-5" /> : <PanelLeftClose className="w-5 h-5" />}
             </button>
             <div className="text-left">
               <h1 className="text-xs sm:text-sm font-bold text-[#1B4332] dark:text-stone-100 flex items-center gap-2 uppercase tracking-wide">
@@ -108,7 +120,6 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ adminSubTab, goAdmin, 
                     if (!confirmDel) return;
                     try { await deleteSubmission(id); } catch (e) { addToast('Data terhapus lokal; server SQLite belum aktif.', 'info'); }
                   }}
-                  onSelectTracking={routeToTracking}
                   onSpeak={speakText}
                 />
               ) : adminSubTab === 'layanan' ? (

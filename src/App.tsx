@@ -2,6 +2,7 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Activity } from 'lucide-react';
 import { useStore } from './store/useStore';
+import { nowSql, createTimeline } from './lib/timeline';
 import { AccessibilityWidget } from './components/AccessibilityWidget';
 import { LayananKami } from './components/LayananKami';
 import { TrackingSobat } from './components/TrackingSobat';
@@ -17,7 +18,7 @@ const EnvironmentalMap = React.lazy(() => import('./components/EnvironmentalMap'
 export default function App() {
   const { 
     initStore, isInitialized, services, submissions, 
-    addSubmission, adminActivityLogs, refreshActivityLogs 
+    addSubmission, activityLogs, refreshActivityLogs 
   } = useStore();
 
   const [portal, setPortal] = useState<'guest' | 'admin'>('guest');
@@ -33,30 +34,37 @@ export default function App() {
     setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 4500);
   };
 
-  const goAdmin = (sub: 'kelola' | 'rancang' | 'layanan') => { window.location.hash = `#/admin/${sub}`; };
-  const goGuest = (tab: string) => { window.location.hash = `#/${tab}`; };
+  const goAdmin = (sub: 'kelola' | 'rancang' | 'layanan') => { navigateTo(`/admin/${sub}`); };
+  const goGuest = (tab: string) => { navigateTo(`/${tab === 'beranda' ? '' : tab}`); };
+
+  const navigateTo = (path: string) => {
+    window.history.pushState(null, '', path);
+    dispatchEvent(new PopStateEvent('popstate'));
+  };
 
   useEffect(() => {
     initStore().catch(() => addToast('Server SQLite tidak aktif. Mode data contoh lokal dipakai.', 'info'));
   }, [initStore]);
 
   useEffect(() => {
-    const readHash = () => {
-      const hash = window.location.hash.replace('#/', '').split('/');
-      const page = hash[0] || 'beranda';
-      const sub = hash[1] || '';
+    const readPath = () => {
+      const path = window.location.pathname.replace(/^\//, '').split('/');
+      const page = path[0] || 'beranda';
+      const sub = path[1] || '';
       if (page === 'admin') {
         setPortal('admin');
         if (sub === 'rancang' || sub === 'kelola' || sub === 'layanan') setAdminSubTab(sub as any);
         else setAdminSubTab('kelola');
       } else {
+        // Only accept known guest tabs
+        const valid = ['beranda', 'layanan', 'lacak', 'asisten', ''];
         setPortal('guest');
-        setActiveTab(page || 'beranda');
+        setActiveTab(valid.includes(page) ? page || 'beranda' : 'beranda');
       }
     };
-    readHash();
-    window.addEventListener('hashchange', readHash);
-    return () => window.removeEventListener('hashchange', readHash);
+    readPath();
+    window.addEventListener('popstate', readPath);
+    return () => window.removeEventListener('popstate', readPath);
   }, []);
 
   const speakText = (text: string) => {
@@ -87,7 +95,21 @@ export default function App() {
     addToast(`Melacak kemajuan berkas dengan kode: ${code}`, 'info');
   };
 
-  if (!isInitialized) return <div className="min-h-screen flex items-center justify-center bg-stone-50">Loading...</div>;
+  if (!isInitialized) return (
+    <div className="min-h-screen flex items-center justify-center bg-stone-50 dark:bg-stone-950">
+      <div className="text-center space-y-5">
+        <div className="flex items-center justify-center gap-2">
+          <div className="w-3 h-3 rounded-full bg-emerald-600 animate-bounce [animation-delay:0ms]" />
+          <div className="w-3 h-3 rounded-full bg-emerald-500 animate-bounce [animation-delay:150ms]" />
+          <div className="w-3 h-3 rounded-full bg-emerald-400 animate-bounce [animation-delay:300ms]" />
+        </div>
+        <div>
+          <h2 className="text-lg font-extrabold text-[#1B4332] dark:text-emerald-400 tracking-tight">Sobat Hijau</h2>
+          <p className="text-xs text-stone-400 dark:text-stone-500 mt-1 font-mono">Memuat sistem pelayanan DLH...</p>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className={portal === 'admin' ? "min-h-screen bg-stone-100 dark:bg-stone-950 flex transition-colors duration-300 relative text-[#081C15] dark:text-stone-100" : "min-h-screen bg-stone-50 dark:bg-stone-950 flex flex-col transition-colors duration-300 relative text-[#081C15] dark:text-stone-100"}>
@@ -123,7 +145,7 @@ export default function App() {
                   <div><span className="font-bold">Keamanan & Audit:</span> Aktivitas ini direkam dalam sistem audit log terpusat DLH Pontianak.</div>
                 </div>
                 <div className="space-y-3">
-                  {adminActivityLogs.map(log => (
+                  {activityLogs.map(log => (
                     <div key={log.id} className="p-3.5 rounded-2xl border bg-stone-50/50 flex items-start gap-3">
                       <div className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${log.iconType === 'success' ? 'bg-emerald-500 animate-pulse' : 'bg-blue-400'}`} />
                       <div className="flex-1 space-y-1">
@@ -135,7 +157,7 @@ export default function App() {
                 </div>
               </div>
               <div className="p-4 bg-stone-50 border-t flex items-center justify-between text-[11px]">
-                <span className="text-stone-400 font-mono text-[9px]">TOTAL LOGS: {adminActivityLogs.length} REC</span>
+                <span className="text-stone-400 font-mono text-[9px]">TOTAL LOGS: {activityLogs.length} REC</span>
                 <button onClick={() => { refreshActivityLogs(); addToast('Log aktivitas diperbarui.', 'info'); }} className="text-stone-500 hover:text-emerald-500 font-bold transition">Segarkan Log</button>
               </div>
             </motion.div>

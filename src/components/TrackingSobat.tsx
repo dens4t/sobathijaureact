@@ -10,10 +10,11 @@ import { Submission } from '../types';
 interface TrackingSobatProps {
   submissions: Submission[];
   initialSearchCode?: string;
+  readonly?: boolean;
   onSpeak: (text: string) => void;
 }
 
-export const TrackingSobat: React.FC<TrackingSobatProps> = ({ submissions, initialSearchCode = '', onSpeak }) => {
+export const TrackingSobat: React.FC<TrackingSobatProps> = ({ submissions, initialSearchCode = '', readonly = false, onSpeak }) => {
   const [searchCode, setSearchCode] = useState(initialSearchCode);
   const [foundSubmission, setFoundSubmission] = useState<Submission | null>(() => {
     if (initialSearchCode) {
@@ -70,8 +71,9 @@ export const TrackingSobat: React.FC<TrackingSobatProps> = ({ submissions, initi
 
   return (
     <div className="max-w-4xl mx-auto" id="tracking-component-container">
-      {/* Search Jumbotron */}
-      <div className="bg-white dark:bg-stone-900 p-8 rounded-2xl border border-emerald-100 dark:border-stone-800 text-slate-850 shadow-sm text-center mb-8">
+      {/* Search Jumbotron — hidden in readonly/view-only mode */}
+      {!readonly && (
+        <div className="bg-white dark:bg-stone-900 p-8 rounded-2xl border border-emerald-100 dark:border-stone-800 text-slate-850 shadow-sm text-center mb-8">
         <h3 className="text-lg font-bold text-[#1B4332] dark:text-emerald-400 tracking-tight mb-2">Lacak Kemajuan Berkas Permohonan Pelayanan DLH</h3>
         <p className="text-xs text-slate-500 dark:text-stone-400 max-w-lg mx-auto mb-6">
           Masukkan Kode Pelacakan Sobat Hijau yang Anda dapatkan saat pengiriman formulir elektronik (Contoh: SH-2026-08123 atau SH-2026-04981).
@@ -121,6 +123,7 @@ export const TrackingSobat: React.FC<TrackingSobatProps> = ({ submissions, initi
           ))}
         </div>
       </div>
+      )}
 
       {/* Details visualization if found */}
       {foundSubmission ? (

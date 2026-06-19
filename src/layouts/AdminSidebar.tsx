@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Sparkles, Activity, Plus, ChevronDown, ChevronUp, FolderOpen, FolderSync, Settings, LogOut, HelpCircle, X } from 'lucide-react';
+import { Search, Activity, Plus, FolderOpen, FolderSync, Settings, LogOut, HelpCircle, X } from 'lucide-react';
 import { useStore } from '../store/useStore';
 
 interface AdminSidebarProps {
@@ -7,16 +7,14 @@ interface AdminSidebarProps {
   goAdmin: (sub: 'kelola' | 'rancang' | 'layanan') => void;
   goGuest: (tab: string) => void;
   speakText: (text: string) => void;
-  isAdminSidebarOpen: boolean;
-  setIsAdminSidebarOpen: (open: boolean) => void;
+  isSidebarOpen: boolean;
+  setIsSidebarOpen: (open: boolean) => void;
+  isCollapsed: boolean;
 }
 
-export const AdminSidebar: React.FC<AdminSidebarProps> = ({ adminSubTab, goAdmin, goGuest, speakText, isAdminSidebarOpen, setIsAdminSidebarOpen }) => {
+export const AdminSidebar: React.FC<AdminSidebarProps> = ({ adminSubTab, goAdmin, goGuest, speakText, isSidebarOpen, setIsSidebarOpen, isCollapsed }) => {
   const { submissions, refreshActivityLogs } = useStore();
   const [sidebarSearchQuery, setSidebarSearchQuery] = useState('');
-  const [isMenuUtamaOpen, setIsMenuUtamaOpen] = useState(true);
-  const [isPortalPublikOpen, setIsPortalPublikOpen] = useState(true);
-  const adminSidebarNavRef = useRef<HTMLElement | null>(null);
   const sidebarSearchInputRef = useRef<HTMLInputElement | null>(null);
 
   const showKelolaBerkas = "Kelola Berkas Masuk".toLowerCase().includes(sidebarSearchQuery.toLowerCase());
@@ -30,61 +28,133 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ adminSubTab, goAdmin
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
-        setIsAdminSidebarOpen(true);
+        setIsSidebarOpen(true);
         setTimeout(() => sidebarSearchInputRef.current?.focus(), 50);
       }
     };
     window.addEventListener('keydown', handleGlobalKeyDown);
     return () => window.removeEventListener('keydown', handleGlobalKeyDown);
-  }, [setIsAdminSidebarOpen]);
+  }, [setIsSidebarOpen]);
+
+  const navigate = (fn: () => void) => { fn(); setIsSidebarOpen(false); };
+
+  // Shared icon-only collapsed layout
+  const collapsedItem = (icon: React.ReactNode, label: string, onClick: () => void, active: boolean, badge?: number) => (
+    <button
+      key={label}
+      onClick={onClick}
+      title={label}
+      className={`relative w-10 h-10 mx-auto rounded-xl flex items-center justify-center transition-all ${
+        active
+          ? 'bg-gradient-to-br from-[#1B4332] via-[#113C2B] to-[#0D2E21] text-white border border-emerald-500/40 shadow-md'
+          : 'text-stone-400 hover:text-white hover:bg-[#113C2B]/60 border border-transparent hover:border-[#1B4332]/40'
+      }`}
+    >
+      {icon}
+      {badge !== undefined && badge > 0 && (
+        <span className="absolute -top-1 -right-1 w-4 h-4 bg-amber-500 text-[#081C15] text-[8px] font-black rounded-full flex items-center justify-center animate-pulse shadow-sm">
+          {badge}
+        </span>
+      )}
+    </button>
+  );
 
   return (
-    <aside className={`fixed md:sticky top-0 bottom-0 left-0 z-50 h-screen w-64 bg-[#081C15] text-stone-100 flex flex-col shrink-0 border-r border-[#1B4332]/40 transition duration-300 md:translate-x-0 ${isAdminSidebarOpen ? 'translate-x-0' : '-translate-x-full'} shadow-2xl md:shadow-none`}>
-      <div className="p-5 border-b border-[#1B4332]/30 flex flex-col items-center text-center gap-2 relative shrink-0">
-        <button onClick={() => setIsAdminSidebarOpen(false)} className="absolute top-4 right-4 p-1.5 rounded-lg text-stone-400 hover:text-white bg-white/10 md:hidden"><X className="w-4 h-4" /></button>
-        <div className="w-12 h-12 rounded-full bg-emerald-900/50 flex items-center justify-center mb-1">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/0/02/Seal_of_Pontianak.svg" alt="Logo" className="w-8 h-8 object-contain" referrerPolicy="no-referrer" />
+    <aside
+      className={`fixed md:sticky top-0 bottom-0 left-0 z-50 h-screen bg-[#081C15] text-stone-100 flex flex-col shrink-0 border-r border-[#1B4332]/40 transition-all duration-300 shadow-2xl md:shadow-none
+        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+        ${isCollapsed ? 'md:w-16' : 'md:w-64'}
+      `}
+    >
+      {/* ── Header ── */}
+      <div className={`p-5 border-b border-[#1B4332]/30 flex flex-col items-center gap-2 relative shrink-0 ${isCollapsed ? 'md:p-3' : ''}`}>
+        <button onClick={() => setIsSidebarOpen(false)} className="absolute top-4 right-4 p-1.5 rounded-lg text-stone-400 hover:text-white bg-white/10 md:hidden">
+          <X className="w-4 h-4" />
+        </button>
+        <div className={`rounded-full bg-emerald-900/50 flex items-center justify-center ${isCollapsed ? 'md:w-8 md:h-8' : 'w-12 h-12'}`}>
+          <img
+            src="https://upload.wikimedia.org/wikipedia/commons/0/02/Seal_of_Pontianak.svg"
+            alt="Logo"
+            className={`object-contain ${isCollapsed ? 'md:w-5 md:h-5' : 'w-8 h-8'}`}
+            referrerPolicy="no-referrer"
+          />
         </div>
-        <h2 className="text-sm font-bold tracking-tight text-emerald-400">SobatHijau <span className="text-white font-normal">DLH</span></h2>
-        <p className="text-[9px] text-stone-400 uppercase font-mono tracking-widest">Admin Portal</p>
+        {!isCollapsed && (
+          <>
+            <h2 className="text-sm font-bold tracking-tight text-emerald-400">SobatHijau <span className="text-white font-normal">DLH</span></h2>
+            <p className="text-[9px] text-stone-400 uppercase font-mono tracking-widest">Admin Portal</p>
+          </>
+        )}
       </div>
 
-      <div className="flex-1 overflow-y-auto scrollbar-hide py-4 px-3 space-y-4">
-        <div className="relative font-sans">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#2D6A4F]" />
-          <input ref={sidebarSearchInputRef} type="text" className="w-full bg-[#05130E]/90 border border-[#1B4332]/50 rounded-lg pl-8 pr-3 py-1.5 text-xs text-stone-100 placeholder-stone-500 focus:outline-none focus:border-emerald-500 transition-all font-medium" placeholder="Cari Menu... (Ctrl+K)" value={sidebarSearchQuery} onChange={(e) => setSidebarSearchQuery(e.target.value)} />
-        </div>
-
-        {!sidebarSearchQuery && (
-          <div className="grid grid-cols-2 gap-2">
-            <button onClick={() => { goAdmin('rancang'); setIsAdminSidebarOpen(false); }} className="flex flex-col items-center p-2 rounded-xl bg-gradient-to-b from-[#113124]/90 to-[#0A1F16]/95 border border-[#1B4332]/60 hover:border-emerald-500/50 hover:text-emerald-400 transition-all text-center gap-1">
-              <Plus className="w-4 h-4" /><span className="text-[9px] font-bold">Buat Berkas</span>
-            </button>
-            <button onClick={refreshActivityLogs} className="flex flex-col items-center p-2 rounded-xl bg-gradient-to-b from-[#113124]/90 to-[#0A1F16]/95 border border-[#1B4332]/60 hover:border-emerald-500/50 hover:text-emerald-400 transition-all text-center gap-1">
-              <Activity className="w-4 h-4" /><span className="text-[9px] font-bold">Log Aktivitas</span>
-            </button>
+      <div className={`flex-1 overflow-y-auto scrollbar-hide py-4 space-y-4 ${isCollapsed ? 'md:px-1.5' : 'px-3'}`}>
+        {/* Search — only when expanded */}
+        {!isCollapsed && (
+          <div className="relative font-sans">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#2D6A4F]" />
+            <input
+              ref={sidebarSearchInputRef}
+              type="text"
+              className="w-full bg-[#05130E]/90 border border-[#1B4332]/50 rounded-lg pl-8 pr-3 py-1.5 text-xs text-stone-100 placeholder-stone-500 focus:outline-none focus:border-emerald-500 transition-all font-medium"
+              placeholder="Cari Menu... (Ctrl+K)"
+              value={sidebarSearchQuery}
+              onChange={(e) => setSidebarSearchQuery(e.target.value)}
+            />
           </div>
+        )}
+
+        {/* Quick actions */}
+        {!sidebarSearchQuery && (
+          isCollapsed ? (
+            <div className="flex flex-col items-center gap-2">
+              {collapsedItem(<Plus className="w-4 h-4" />, 'Buat Layanan', () => navigate(() => goAdmin('rancang')), false)}
+              {collapsedItem(<Activity className="w-4 h-4" />, 'Log Aktivitas', refreshActivityLogs, false)}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-2">
+              <button onClick={() => navigate(() => goAdmin('rancang'))} className="flex flex-col items-center p-2 rounded-xl bg-gradient-to-b from-[#113124]/90 to-[#0A1F16]/95 border border-[#1B4332]/60 hover:border-emerald-500/50 hover:text-emerald-400 transition-all text-center gap-1">
+                <Plus className="w-4 h-4" /><span className="text-[9px] font-bold">Buat Layanan</span>
+              </button>
+              <button onClick={refreshActivityLogs} className="flex flex-col items-center p-2 rounded-xl bg-gradient-to-b from-[#113124]/90 to-[#0A1F16]/95 border border-[#1B4332]/60 hover:border-emerald-500/50 hover:text-emerald-400 transition-all text-center gap-1">
+                <Activity className="w-4 h-4" /><span className="text-[9px] font-bold">Log Aktivitas</span>
+              </button>
+            </div>
+          )
         )}
 
         {(showKelolaBerkas || showRancangLayanan || showKelolalLayanan) && (
           <div className="space-y-1 mt-4">
-            <p className="text-[9px] text-[#2D6A4F] font-bold uppercase tracking-widest px-2 mb-2">Menu Utama</p>
-            {showKelolaBerkas && <SidebarItem active={adminSubTab === 'kelola'} onClick={() => { goAdmin('kelola'); setIsAdminSidebarOpen(false); }} icon={<FolderOpen className="w-4 h-4" />} label="Berkas Masuk" badge={pendingCount > 0 ? pendingCount : undefined} />}
-            {showKelolalLayanan && <SidebarItem active={adminSubTab === 'layanan'} onClick={() => { goAdmin('layanan'); setIsAdminSidebarOpen(false); }} icon={<FolderSync className="w-4 h-4" />} label="Semua Layanan" />}
-            {showRancangLayanan && <SidebarItem active={adminSubTab === 'rancang'} onClick={() => { goAdmin('rancang'); setIsAdminSidebarOpen(false); }} icon={<Settings className="w-4 h-4" />} label="Rancang Layanan" />}
+            {!isCollapsed && (
+              <p className="text-[9px] text-[#2D6A4F] font-bold uppercase tracking-widest px-2 mb-2">Menu Utama</p>
+            )}
+            {showKelolaBerkas && (isCollapsed
+              ? collapsedItem(<FolderOpen className="w-4 h-4" />, 'Berkas Masuk', () => navigate(() => goAdmin('kelola')), adminSubTab === 'kelola', pendingCount)
+              : <SidebarItem active={adminSubTab === 'kelola'} onClick={() => navigate(() => goAdmin('kelola'))} icon={<FolderOpen className="w-4 h-4" />} label="Berkas Masuk" badge={pendingCount > 0 ? pendingCount : undefined} />
+            )}
+            {showKelolalLayanan && (isCollapsed
+              ? collapsedItem(<FolderSync className="w-4 h-4" />, 'Semua Layanan', () => navigate(() => goAdmin('layanan')), adminSubTab === 'layanan')
+              : <SidebarItem active={adminSubTab === 'layanan'} onClick={() => navigate(() => goAdmin('layanan'))} icon={<FolderSync className="w-4 h-4" />} label="Semua Layanan" />
+            )}
+            {showRancangLayanan && (isCollapsed
+              ? collapsedItem(<Settings className="w-4 h-4" />, 'Rancang Layanan', () => navigate(() => goAdmin('rancang')), adminSubTab === 'rancang')
+              : <SidebarItem active={adminSubTab === 'rancang'} onClick={() => navigate(() => goAdmin('rancang'))} icon={<Settings className="w-4 h-4" />} label="Rancang Layanan" />
+            )}
           </div>
         )}
 
-        {showKembaliWebsite && (
-          <div className="space-y-1 mt-6">
-            <p className="text-[9px] text-[#2D6A4F] font-bold uppercase tracking-widest px-2 mb-2">Portal Publik</p>
-            <button onClick={() => { goGuest('beranda'); setIsAdminSidebarOpen(false); }} className="w-full px-3 py-2.5 transition-all flex items-center gap-2.5 text-left rounded-xl text-xs font-semibold text-rose-300 hover:bg-rose-950/40">
-              <LogOut className="w-4 h-4 shrink-0" /><span className="truncate">Kembali ke Website</span>
-            </button>
-          </div>
+        {showKembaliWebsite && (isCollapsed
+          ? <div className="mt-6 flex flex-col items-center">{collapsedItem(<LogOut className="w-4 h-4" />, 'Kembali ke Website', () => navigate(() => goGuest('beranda')), false)}</div>
+          : (
+            <div className="space-y-1 mt-6">
+              <p className="text-[9px] text-[#2D6A4F] font-bold uppercase tracking-widest px-2 mb-2">Portal Publik</p>
+              <button onClick={() => navigate(() => goGuest('beranda'))} className="w-full px-3 py-2.5 transition-all flex items-center gap-2.5 text-left rounded-xl text-xs font-semibold text-rose-300 hover:bg-rose-950/40">
+                <LogOut className="w-4 h-4 shrink-0" /><span className="truncate">Kembali ke Website</span>
+              </button>
+            </div>
+          )
         )}
 
-        {(!showKelolaBerkas && !showRancangLayanan && !showKelolalLayanan && !showKembaliWebsite) && (
+        {(!showKelolaBerkas && !showRancangLayanan && !showKelolalLayanan && !showKembaliWebsite) && !isCollapsed && (
           <div className="py-8 text-center text-stone-500 text-xs">
             <HelpCircle className="w-6 h-6 text-stone-600 mx-auto mb-2 opacity-60" />
             <p>Tidak ditemukan</p>
