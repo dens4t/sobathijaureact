@@ -1,50 +1,59 @@
 import { create } from 'zustand';
-import { ServiceTemplate, Submission, AppNotification, AccessibilitySettings, SubmissionStatus } from '../types';
+import { GeoCategory, GeoLocation, NetworkLink, ServiceTemplate, Submission, AppNotification, AccessibilitySettings, SubmissionStatus } from '../types';
 import { api } from '../lib/api';
 import { defaultServices, defaultSubmissions } from '../data/defaultServices';
+import { defaultLocations } from '../data/defaultLocations';
+import { defaultCategories } from '../data/defaultCategories';
 
 export type ActivityLog = { id: string; action: string; timestamp: string; iconType: string };
 
 interface AppState {
-  // Data
   services: ServiceTemplate[];
   submissions: Submission[];
   notifications: AppNotification[];
   activityLogs: ActivityLog[];
+  locations: GeoLocation[];
+  categories: GeoCategory[];
+  networkLinks: NetworkLink[];
   accessibility: AccessibilitySettings;
-  
-  // Loading & Init
   isInitialized: boolean;
-  
-  // Actions - Initialization
+
   initStore: () => Promise<void>;
-  
-  // Actions - Services
+
   addService: (service: ServiceTemplate) => Promise<void>;
   updateService: (service: ServiceTemplate) => Promise<void>;
   deleteService: (id: string) => Promise<void>;
-  
-  // Actions - Submissions
+
+  addLocation: (loc: GeoLocation) => Promise<void>;
+  updateLocation: (loc: GeoLocation) => Promise<void>;
+  deleteLocation: (id: string) => Promise<void>;
+
+  addCategory: (cat: GeoCategory) => Promise<void>;
+  updateCategory: (cat: GeoCategory) => Promise<void>;
+  deleteCategory: (id: string) => Promise<void>;
+
   addSubmission: (sub: Submission) => Promise<void>;
   updateSubmissionStatus: (id: string, status: SubmissionStatus, note?: string) => Promise<any>;
   deleteSubmission: (id: string) => Promise<void>;
-  
-  // Actions - Notifications
+
   markNotificationRead: (id: string) => Promise<void>;
   markAllNotificationsRead: () => Promise<void>;
   clearNotifications: () => Promise<void>;
   addLocalNotification: (notif: AppNotification) => void;
-  
-  // Actions - Accessibility
+
   updateAccessibility: (settings: Partial<AccessibilitySettings>) => void;
-  
-  // Actions - Activity Logs
   refreshActivityLogs: () => void;
+
+  addNetworkLink: (link: NetworkLink) => Promise<void>;
+  updateNetworkLink: (link: NetworkLink) => Promise<void>;
+  deleteNetworkLink: (id: string) => Promise<void>;
 }
 
 export const useStore = create<AppState>((set, get) => ({
   services: defaultServices,
   submissions: defaultSubmissions,
+  locations: defaultLocations,
+  categories: defaultCategories,
   notifications: [],
   activityLogs: [
     { id: 'log-1', action: 'Login berhasil sebagai Administrator DLH Pontianak', timestamp: '2026-06-03 12:44', iconType: 'success' },
@@ -53,6 +62,7 @@ export const useStore = create<AppState>((set, get) => ({
     { id: 'log-4', action: 'Memperbarui koordinat sebaran TPS 3R di peta lingkungan', timestamp: '2026-06-02 16:30', iconType: 'info' },
     { id: 'log-5', action: 'Menambahkan kuesioner baru untuk layanan Pengujian Kebisingan', timestamp: '2026-06-02 14:15', iconType: 'success' },
   ],
+  networkLinks: [] as NetworkLink[],
   accessibility: {
     textSize: 'normal',
     contrast: 'normal',
@@ -68,6 +78,9 @@ export const useStore = create<AppState>((set, get) => ({
       set({
         services: data.services.length ? data.services : defaultServices,
         submissions: data.submissions.length ? data.submissions : defaultSubmissions,
+        locations: data.locations.length ? data.locations : defaultLocations,
+        categories: data.categories.length ? data.categories : defaultCategories,
+        networkLinks: data.networkLinks || [],
         notifications: data.notifications,
         activityLogs: data.activityLogs.length ? data.activityLogs : get().activityLogs,
         isInitialized: true
@@ -132,6 +145,36 @@ export const useStore = create<AppState>((set, get) => ({
     try { await api.deleteSubmission(id); } catch (e) { throw e; }
   },
 
+  addLocation: async (loc) => {
+    set(s => ({ locations: [loc, ...s.locations] }));
+    try { await api.addLocation(loc); } catch (e) { throw e; }
+  },
+
+  updateLocation: async (loc) => {
+    set(s => ({ locations: s.locations.map(x => x.id === loc.id ? loc : x) }));
+    try { await api.updateLocation(loc); } catch (e) { throw e; }
+  },
+
+  deleteLocation: async (id) => {
+    set(s => ({ locations: s.locations.filter(x => x.id !== id) }));
+    try { await api.deleteLocation(id); } catch (e) { throw e; }
+  },
+
+  addCategory: async (cat) => {
+    set(s => ({ categories: [...s.categories, cat] }));
+    try { await api.addCategory(cat); } catch (e) { throw e; }
+  },
+
+  updateCategory: async (cat) => {
+    set(s => ({ categories: s.categories.map(x => x.id === cat.id ? cat : x) }));
+    try { await api.updateCategory(cat); } catch (e) { throw e; }
+  },
+
+  deleteCategory: async (id) => {
+    set(s => ({ categories: s.categories.filter(x => x.id !== id) }));
+    try { await api.deleteCategory(id); } catch (e) { throw e; }
+  },
+
   markNotificationRead: async (id) => {
     set(s => ({ notifications: s.notifications.map(n => n.id === id ? { ...n, isRead: true } : n) }));
     try { await api.setNotificationRead(id); } catch (e) {}
@@ -166,5 +209,20 @@ export const useStore = create<AppState>((set, get) => ({
         ...s.activityLogs
       ]
     }));
-  }
+  },
+
+  addNetworkLink: async (link) => {
+    set(s => ({ networkLinks: [link, ...s.networkLinks] }));
+    try { await api.addNetworkLink(link); } catch (e) { throw e; }
+  },
+
+  updateNetworkLink: async (link) => {
+    set(s => ({ networkLinks: s.networkLinks.map(x => x.id === link.id ? link : x) }));
+    try { await api.updateNetworkLink(link); } catch (e) { throw e; }
+  },
+
+  deleteNetworkLink: async (id) => {
+    set(s => ({ networkLinks: s.networkLinks.filter(x => x.id !== id) }));
+    try { await api.deleteNetworkLink(id); } catch (e) { throw e; }
+  },
 }));

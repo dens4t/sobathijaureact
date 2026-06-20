@@ -1,12 +1,12 @@
 import React from 'react';
-import { Leaf, Search, FileText, Bot } from 'lucide-react';
+import { Leaf, Search, FileText, Bot, Globe, Map } from 'lucide-react';
 import { PublicNotifications } from '../components/PublicNotifications';
 import { useStore } from '../store/useStore';
 
 interface PublicHeaderProps {
   activeTab: string;
   changeTab: (tab: string) => void;
-  goAdmin: (sub: 'kelola' | 'rancang' | 'layanan') => void;
+  goAdmin: (sub: 'kelola' | 'rancang' | 'layanan' | 'peta' | 'jejaring') => void;
   speakText: (text: string) => void;
   setTrackSearchCode: (code: string) => void;
   addToast: (msg: string, type: 'success' | 'info' | 'error') => void;
@@ -74,7 +74,7 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({ activeTab, changeTab
 
       <nav className="bg-[#FFFFFF]/95 dark:bg-[#1C1917]/95 border-b border-emerald-100/60 dark:border-stone-850 backdrop-blur-md sticky top-0 z-40 shadow-sm transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 flex items-center justify-between gap-4" id="main-navigation-menu">
-          <div className="grid grid-cols-4 md:flex md:space-x-1 py-1 w-full md:w-auto">
+          <div className="grid grid-cols-5 md:flex md:space-x-1 py-1 w-full md:w-auto">
             <button onClick={() => changeTab('beranda')} className={`py-3 md:px-4 text-[10px] sm:text-xs font-bold transition flex flex-col md:flex-row items-center justify-center gap-1 md:gap-1.5 whitespace-nowrap border-b-2 ${activeTab === 'beranda' ? 'border-[#1B4332] text-[#1B4332] dark:border-emerald-400 dark:text-emerald-400 font-extrabold' : 'border-transparent text-gray-500 dark:text-stone-400 hover:text-[#1B4332] dark:hover:text-amber-400'}`}>
               <Leaf className="w-3.5 h-3.5 md:w-4 md:h-4 text-emerald-700 dark:text-emerald-400" />
               <span>Beranda</span>
@@ -86,6 +86,14 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({ activeTab, changeTab
             <button onClick={() => changeTab('lacak')} className={`py-3 md:px-4 text-[10px] sm:text-xs font-bold transition flex flex-col md:flex-row items-center justify-center gap-1 md:gap-1.5 whitespace-nowrap border-b-2 ${activeTab === 'lacak' ? 'border-[#1B4332] text-[#1B4332] dark:border-emerald-400 dark:text-emerald-400 font-extrabold' : 'border-transparent text-gray-500 dark:text-stone-400 hover:text-[#1B4332] dark:hover:text-amber-400'}`}>
               <Search className="w-3.5 h-3.5 md:w-4 md:h-4 text-emerald-700 dark:text-emerald-400" />
               <span>Lacak</span>
+            </button>
+            <button onClick={() => changeTab('peta')} className={`py-3 md:px-4 text-[10px] sm:text-xs font-bold transition flex flex-col md:flex-row items-center justify-center gap-1 md:gap-1.5 whitespace-nowrap border-b-2 ${activeTab === 'peta' ? 'border-[#1B4332] text-[#1B4332] dark:border-emerald-400 dark:text-emerald-400 font-extrabold' : 'border-transparent text-gray-500 dark:text-stone-400 hover:text-[#1B4332] dark:hover:text-amber-400'}`}>
+              <Map className="w-3.5 h-3.5 md:w-4 md:h-4 text-emerald-700 dark:text-emerald-400" />
+              <span>Peta</span>
+            </button>
+            <button onClick={() => changeTab('jejaring')} className={`py-3 md:px-4 text-[10px] sm:text-xs font-bold transition flex flex-col md:flex-row items-center justify-center gap-1 md:gap-1.5 whitespace-nowrap border-b-2 ${activeTab === 'jejaring' ? 'border-[#1B4332] text-[#1B4332] dark:border-emerald-400 dark:text-emerald-400 font-extrabold' : 'border-transparent text-gray-500 dark:text-stone-400 hover:text-[#1B4332] dark:hover:text-amber-400'}`}>
+              <Globe className="w-3.5 h-3.5 md:w-4 md:h-4 text-emerald-700 dark:text-emerald-400" />
+              <span>Jejaring</span>
             </button>
             <button onClick={() => changeTab('asisten')} className={`py-3 md:px-4 text-[10px] sm:text-xs font-bold transition flex flex-col md:flex-row items-center justify-center gap-1 md:gap-1.5 whitespace-nowrap border-b-2 ${activeTab === 'asisten' ? 'border-[#1B4332] text-[#1B4332] dark:border-emerald-400 dark:text-emerald-400 font-extrabold' : 'border-transparent text-gray-500 dark:text-stone-400 hover:text-[#1B4332] dark:hover:text-amber-400'}`}>
               <Bot className="w-3.5 h-3.5 md:w-4 md:h-4 text-emerald-700 dark:text-emerald-400" />

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Activity } from 'lucide-react';
+import { X, Activity, ExternalLink } from 'lucide-react';
 import { useStore } from './store/useStore';
 import { nowSql, createTimeline } from './lib/timeline';
 import { AccessibilityWidget } from './components/AccessibilityWidget';
@@ -13,17 +13,17 @@ import { AdminLayout } from './layouts/AdminLayout';
 
 // Lazy load heavy components
 const EcoCarousel = React.lazy(() => import('./components/EcoCarousel').then(m => ({ default: m.EcoCarousel })));
-const EnvironmentalMap = React.lazy(() => import('./components/EnvironmentalMap').then(m => ({ default: m.EnvironmentalMap })));
+const MapView = React.lazy(() => import('./components/MapView').then(m => ({ default: m.MapView })));
 
 export default function App() {
   const { 
-    initStore, isInitialized, services, submissions, 
+    initStore, isInitialized, services, submissions, locations, categories, networkLinks,
     addSubmission, activityLogs, refreshActivityLogs 
   } = useStore();
 
   const [portal, setPortal] = useState<'guest' | 'admin'>('guest');
   const [activeTab, setActiveTab] = useState<string>('beranda');
-  const [adminSubTab, setAdminSubTab] = useState<'kelola' | 'rancang' | 'layanan'>('kelola');
+  const [adminSubTab, setAdminSubTab] = useState<'kelola' | 'rancang' | 'layanan' | 'peta' | 'kategori' | 'jejaring'>('kelola');
   const [trackSearchCode, setTrackSearchCode] = useState<string>('');
   const [isActivityLogModalOpen, setIsActivityLogModalOpen] = useState(false);
   
@@ -34,7 +34,7 @@ export default function App() {
     setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 4500);
   };
 
-  const goAdmin = (sub: 'kelola' | 'rancang' | 'layanan') => { navigateTo(`/admin/${sub}`); };
+  const goAdmin = (sub: 'kelola' | 'rancang' | 'layanan' | 'peta' | 'kategori' | 'jejaring') => { navigateTo(`/admin/${sub}`); };
   const goGuest = (tab: string) => { navigateTo(`/${tab === 'beranda' ? '' : tab}`); };
 
   const navigateTo = (path: string) => {
@@ -53,11 +53,11 @@ export default function App() {
       const sub = path[1] || '';
       if (page === 'admin') {
         setPortal('admin');
-        if (sub === 'rancang' || sub === 'kelola' || sub === 'layanan') setAdminSubTab(sub as any);
+        if (sub === 'rancang' || sub === 'kelola' || sub === 'layanan' || sub === 'peta' || sub === 'kategori' || sub === 'jejaring') setAdminSubTab(sub as any);
         else setAdminSubTab('kelola');
       } else {
         // Only accept known guest tabs
-        const valid = ['beranda', 'layanan', 'lacak', 'asisten', ''];
+        const valid = ['beranda', 'layanan', 'lacak', 'asisten', 'peta', 'jejaring', ''];
         setPortal('guest');
         setActiveTab(valid.includes(page) ? page || 'beranda' : 'beranda');
       }
@@ -86,6 +86,8 @@ export default function App() {
     else if (tabName === 'layanan') tabIndo = "Formulir Layanan Kami";
     else if (tabName === 'lacak') tabIndo = "Lacak Berkas Permohonan";
     else if (tabName === 'asisten') tabIndo = "Chat Asisten Cerdas";
+    else if (tabName === 'peta') tabIndo = "Peta Sebaran TPS, TPA dan Bank Sampah";
+    else if (tabName === 'jejaring') tabIndo = "Jejaring DLH";
     speakText(`Membuka tab ${tabIndo}`);
   };
 
@@ -203,47 +205,42 @@ export default function App() {
                     </Suspense>
 
                     <Suspense fallback={<div className="h-64 bg-slate-50 animate-pulse rounded-2xl"></div>}>
-                      <EnvironmentalMap />
+                      <MapView locations={locations} categories={categories} />
                     </Suspense>
                   </div>
                 )}
 
-                {activeTab === 'layanan' && (
-                  <div className="space-y-4 animate-fade-in text-slate-900">
-                    <h3 className="text-lg font-black tracking-tight text-[#1B4332]">Daftar Layanan Publik DLH</h3>
-                    <LayananKami 
-                      services={services} 
-                      onSubmitForm={async (svc, data) => {
-                        try {
-                          const dateNowStr = nowSql();
-                          const newSubmission = {
-                            id: data.__code, serviceId: svc.id, serviceName: svc.name,
-                            submittedAt: dateNowStr, status: 'DIAJUKAN' as const, applicantName: data.__applicantName,
-                            formData: Object.fromEntries(Object.entries(data).filter(([k]) => !k.startsWith('__'))),
-                            timeline: createTimeline(dateNowStr)
-                          };
-                          await addSubmission(newSubmission);
-                          addToast(`Permohonan ${svc.name} diajukan! Kode: ${data.__code}`, 'success');
-                        } catch (e) {
-                          addToast('Tersimpan lokal; server offline.', 'info');
-                        }
-                      }}
-                      onSpeak={speakText}
-                    />
-                  </div>
+                {activeTab === 'peta' && (
+                  <Suspense fallback={<div className="h-96 bg-slate-50 animate-pulse rounded-2xl"></div>}>
+                    <MapView locations={locations} categories={categories} />
+                  </Suspense>
                 )}
 
-                {activeTab === 'lacak' && (
-                  <div className="space-y-4 animate-fade-in">
-                    <h3 className="text-lg font-black tracking-tight text-[#1B4332]">Pelacakan Berkas Digital</h3>
-                    <TrackingSobat submissions={submissions} initialSearchCode={trackSearchCode} onSpeak={speakText} />
-                  </div>
-                )}
-
-                {activeTab === 'asisten' && (
-                  <div className="max-w-2xl mx-auto space-y-4 animate-fade-in">
-                    <h3 className="text-lg font-black tracking-tight text-[#1B4332]">Konsultasi Terpadu Cerdas</h3>
-                    <AsistenHijau ttsEnabled={useStore.getState().accessibility.textToSpeech} onSpeak={speakText} />
+                {activeTab === 'jejaring' && (
+                  <div className="max-w-4xl mx-auto space-y-6 animate-fade-in">
+                    <div className="bg-white border p-6 md:p-8 rounded-2xl shadow-sm">
+                      <h3 className="text-lg font-black tracking-tight text-[#1B4332] mb-2">Jejaring DLH Kota Pontianak</h3>
+                      <p className="text-xs text-slate-500 mb-6 max-w-lg">
+                        Portal dan layanan resmi terintegrasi dalam lingkungan Dinas Lingkungan Hidup Kota Pontianak.
+                      </p>
+                      <div className="grid gap-4">
+                        {networkLinks.map(link => (
+                          <a
+                            key={link.id}
+                            href={link.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="group flex items-center justify-between p-5 rounded-xl border border-slate-200 hover:border-emerald-300 bg-slate-50 hover:bg-emerald-50/50 transition text-left"
+                          >
+                            <div>
+                              <p className="text-sm font-bold text-slate-800 group-hover:text-[#1B4332] transition">{link.title}</p>
+                              <p className="text-[11px] text-slate-500 mt-0.5">{link.description || link.url}</p>
+                            </div>
+                            <ExternalLink className="w-5 h-5 text-slate-300 group-hover:text-emerald-700 shrink-0 transition" />
+                          </a>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 )}
                 

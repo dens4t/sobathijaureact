@@ -54,6 +54,33 @@ export interface AccessibilitySettings {
   screenReaderActive: boolean;
 }
 
+export interface GeoCategory {
+  id: string;
+  name: string;
+  description: string;      // Rich HTML description
+  shortDesc: string;
+  iconName: string;
+  color: string;
+  markerColor: string;
+  order: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GeoLocation {
+  id: string;
+  name: string;
+  category: string; // references GeoCategory.name
+  lat: number;
+  lng: number;
+  address: string;
+  description: string;
+  iconName: string;
+  color: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface AppNotification {
   id: string;
   submissionId: string;
@@ -63,5 +90,14 @@ export interface AppNotification {
   message: string;
   timestamp: string;
   isRead: boolean;
+}
+
+export interface NetworkLink {
+  id: string;
+  title: string;
+  url: string;
+  description?: string;
+  sortOrder: number;
+  isActive: boolean;
 }
 

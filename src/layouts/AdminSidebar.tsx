@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Activity, Plus, FolderOpen, FolderSync, Settings, LogOut, HelpCircle, X } from 'lucide-react';
+import { Search, Activity, Plus, FolderOpen, FolderSync, Settings, LogOut, HelpCircle, X, Map, Globe, Layers } from 'lucide-react';
 import { useStore } from '../store/useStore';
 
 interface AdminSidebarProps {
-  adminSubTab: 'kelola' | 'rancang' | 'layanan';
-  goAdmin: (sub: 'kelola' | 'rancang' | 'layanan') => void;
+  adminSubTab: 'kelola' | 'rancang' | 'layanan' | 'peta' | 'kategori' | 'jejaring';
+  goAdmin: (sub: 'kelola' | 'rancang' | 'layanan' | 'peta' | 'kategori' | 'jejaring') => void;
   goGuest: (tab: string) => void;
   speakText: (text: string) => void;
   isSidebarOpen: boolean;
@@ -20,6 +20,9 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ adminSubTab, goAdmin
   const showKelolaBerkas = "Kelola Berkas Masuk".toLowerCase().includes(sidebarSearchQuery.toLowerCase());
   const showRancangLayanan = "Rancang Layanan Baru".toLowerCase().includes(sidebarSearchQuery.toLowerCase());
   const showKelolalLayanan = "Kelola Semua Layanan".toLowerCase().includes(sidebarSearchQuery.toLowerCase());
+  const showKelolaPeta = "Kelola Peta".toLowerCase().includes(sidebarSearchQuery.toLowerCase());
+  const showKelolaKategori = "Kelola Kategori".toLowerCase().includes(sidebarSearchQuery.toLowerCase());
+  const showJejaring = "Kelola Jejaring".toLowerCase().includes(sidebarSearchQuery.toLowerCase());
   const showKembaliWebsite = "Kembali ke Website".toLowerCase().includes(sidebarSearchQuery.toLowerCase());
 
   const pendingCount = submissions.filter(s => s.status === 'DIAJUKAN' || s.status === 'VERIFIKASI_ADMIN').length;
@@ -122,7 +125,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ adminSubTab, goAdmin
           )
         )}
 
-        {(showKelolaBerkas || showRancangLayanan || showKelolalLayanan) && (
+        {(showKelolaBerkas || showRancangLayanan || showKelolalLayanan || showKelolaPeta || showKelolaKategori || showJejaring) && (
           <div className="space-y-1 mt-4">
             {!isCollapsed && (
               <p className="text-[9px] text-[#2D6A4F] font-bold uppercase tracking-widest px-2 mb-2">Menu Utama</p>
@@ -130,6 +133,18 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ adminSubTab, goAdmin
             {showKelolaBerkas && (isCollapsed
               ? collapsedItem(<FolderOpen className="w-4 h-4" />, 'Berkas Masuk', () => navigate(() => goAdmin('kelola')), adminSubTab === 'kelola', pendingCount)
               : <SidebarItem active={adminSubTab === 'kelola'} onClick={() => navigate(() => goAdmin('kelola'))} icon={<FolderOpen className="w-4 h-4" />} label="Berkas Masuk" badge={pendingCount > 0 ? pendingCount : undefined} />
+            )}
+            {showKelolaPeta && (isCollapsed
+              ? collapsedItem(<Map className="w-4 h-4" />, 'Kelola Peta', () => navigate(() => goAdmin('peta')), adminSubTab === 'peta')
+              : <SidebarItem active={adminSubTab === 'peta'} onClick={() => navigate(() => goAdmin('peta'))} icon={<Map className="w-4 h-4" />} label="Kelola Peta" />
+            )}
+            {showKelolaKategori && (isCollapsed
+              ? collapsedItem(<Layers className="w-4 h-4" />, 'Kelola Kategori', () => navigate(() => goAdmin('kategori')), adminSubTab === 'kategori')
+              : <SidebarItem active={adminSubTab === 'kategori'} onClick={() => navigate(() => goAdmin('kategori'))} icon={<Layers className="w-4 h-4" />} label="Kelola Kategori" />
+            )}
+            {showJejaring && (isCollapsed
+              ? collapsedItem(<Globe className="w-4 h-4" />, 'Kelola Jejaring', () => navigate(() => goAdmin('jejaring')), adminSubTab === 'jejaring')
+              : <SidebarItem active={adminSubTab === 'jejaring'} onClick={() => navigate(() => goAdmin('jejaring'))} icon={<Globe className="w-4 h-4" />} label="Kelola Jejaring" />
             )}
             {showKelolalLayanan && (isCollapsed
               ? collapsedItem(<FolderSync className="w-4 h-4" />, 'Semua Layanan', () => navigate(() => goAdmin('layanan')), adminSubTab === 'layanan')
@@ -154,7 +169,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ adminSubTab, goAdmin
           )
         )}
 
-        {(!showKelolaBerkas && !showRancangLayanan && !showKelolalLayanan && !showKembaliWebsite) && !isCollapsed && (
+        {(!showKelolaBerkas && !showRancangLayanan && !showKelolalLayanan && !showKelolaPeta && !showKembaliWebsite) && !isCollapsed && (
           <div className="py-8 text-center text-stone-500 text-xs">
             <HelpCircle className="w-6 h-6 text-stone-600 mx-auto mb-2 opacity-60" />
             <p>Tidak ditemukan</p>

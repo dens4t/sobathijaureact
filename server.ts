@@ -4,6 +4,8 @@ import { fileURLToPath } from 'url';
 import sqlite3 from 'sqlite3';
 import { open } from 'sqlite';
 import { defaultServices, defaultSubmissions } from './src/data/defaultServices.js';
+import { defaultLocations } from './src/data/defaultLocations.js';
+import { defaultCategories } from './src/data/defaultCategories.js';
 import { updateTimeline, nowSql, STATUS_LABELS } from './src/lib/timeline.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -17,6 +19,8 @@ CREATE TABLE IF NOT EXISTS services (id TEXT PRIMARY KEY, data TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS submissions (id TEXT PRIMARY KEY, data TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS notifications (id TEXT PRIMARY KEY, data TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS activity_logs (id TEXT PRIMARY KEY, data TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS locations (id TEXT PRIMARY KEY, data TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS categories (id TEXT PRIMARY KEY, data TEXT NOT NULL);
 `);
 
 const seed = async (table: string, rows: any[]) => {
@@ -26,6 +30,8 @@ const seed = async (table: string, rows: any[]) => {
 
 await seed('services', defaultServices);
 await seed('submissions', defaultSubmissions);
+await seed('locations', defaultLocations);
+await seed('categories', defaultCategories);
 await seed('notifications', [
   { id: 'notif-1', submissionId: 'SH-2026-08123', applicantName: 'PT. Pontianak Tirta Agung', serviceName: 'Pengujian Sampah / Air / Udara Laboratorium', newStatus: 'SURVEY_TEKNIS', message: 'Status permohonan Laboratorium (SH-2026-08123) milik PT. Pontianak Tirta Agung diperbarui oleh Admin menjadi SURVEY TEKNIS.', timestamp: '2026-06-01 09:12', isRead: false },
   { id: 'notif-2', submissionId: 'SH-2026-04981', applicantName: 'Bapak Ahmad Subardjo', serviceName: 'Izin Rekomendasi Upaya Pemantauan Lingkungan Hidup (UKL-UPL)', newStatus: 'SELESAI', message: 'Selamat! Dokumen Kelayakan UKL-UPL (SH-2026-04981) atas nama Bapak Ahmad Subardjo telah SELESAI diterbitkan dan siap diunduh.', timestamp: '2026-06-02 07:45', isRead: false }
@@ -43,7 +49,7 @@ const put = (table: string, row: any) => db.run(`INSERT OR REPLACE INTO ${table}
 
 const app = express();
 app.use(express.json({ limit: '2mb' }));
-app.get('/api/bootstrap', async (_, res) => res.json({ services: await all('services'), submissions: await all('submissions'), notifications: await all('notifications'), activityLogs: await all('activity_logs') }));
+app.get('/api/bootstrap', async (_, res) => res.json({ services: await all('services'), submissions: await all('submissions'), notifications: await all('notifications'), activityLogs: await all('activity_logs'), locations: await all('locations'), categories: await all('categories') }));
 app.post('/api/services', async (req, res) => { await put('services', req.body); res.json(req.body); });
 app.put('/api/services/:id', async (req, res) => { await put('services', req.body); res.json(req.body); });
 app.delete('/api/services/:id', async (req, res) => { await db.run('DELETE FROM services WHERE id=?', req.params.id); res.json({ ok: true }); });
@@ -70,6 +76,16 @@ app.put('/api/notifications/read-all', async (_, res) => {
 });
 app.put('/api/notifications/:id/read', async (req, res) => { const row = await db.get<{ data: string }>('SELECT data FROM notifications WHERE id=?', req.params.id); if (!row) return res.status(404).send('notification not found'); const n = { ...JSON.parse(row.data), isRead: true }; await put('notifications', n); res.json(n); });
 app.delete('/api/notifications', async (_, res) => { await db.run('DELETE FROM notifications'); res.json({ ok: true }); });
+
+app.get('/api/locations', async (_, res) => res.json(await all('locations')));
+app.post('/api/locations', async (req, res) => { await put('locations', req.body); res.json(req.body); });
+app.put('/api/locations/:id', async (req, res) => { await put('locations', req.body); res.json(req.body); });
+app.delete('/api/locations/:id', async (req, res) => { await db.run('DELETE FROM locations WHERE id=?', req.params.id); res.json({ ok: true }); });
+
+app.get('/api/categories', async (_, res) => res.json(await all('categories')));
+app.post('/api/categories', async (req, res) => { await put('categories', req.body); res.json(req.body); });
+app.put('/api/categories/:id', async (req, res) => { await put('categories', req.body); res.json(req.body); });
+app.delete('/api/categories/:id', async (req, res) => { await db.run('DELETE FROM categories WHERE id=?', req.params.id); res.json({ ok: true }); });
 
 app.use(express.static(path.join(__dirname, 'dist')));
 app.get('*', (_, res) => res.sendFile(path.join(__dirname, 'dist/index.html')));
