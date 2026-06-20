@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS notifications (id TEXT PRIMARY KEY, data TEXT NOT NUL
 CREATE TABLE IF NOT EXISTS activity_logs (id TEXT PRIMARY KEY, data TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS locations (id TEXT PRIMARY KEY, data TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS categories (id TEXT PRIMARY KEY, data TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS network_links (id TEXT PRIMARY KEY, data TEXT NOT NULL);
 `);
 
 const seed = async (table: string, rows: any[]) => {
@@ -32,6 +33,13 @@ await seed('services', defaultServices);
 await seed('submissions', defaultSubmissions);
 await seed('locations', defaultLocations);
 await seed('categories', defaultCategories);
+await seed('network_links', [
+  { id: 'link-1', title: 'Portal Resmi DLH Kota Pontianak', url: 'https://dlh.pontianakkota.go.id', description: 'Website resmi Dinas Lingkungan Hidup Kota Pontianak', sortOrder: 1, isActive: true },
+  { id: 'link-2', title: 'Sistem Informasi Pengelolaan Sampah', url: 'https://sips.dlh.pontianakkota.go.id', description: 'Portal data dan monitoring pengelolaan sampah Kota Pontianak', sortOrder: 2, isActive: true },
+  { id: 'link-3', title: 'Informasi Indeks Kualitas Lingkungan Hidup', url: 'https://iklh.menlhk.go.id', description: 'Data IKLH nasional dari Kementerian Lingkungan Hidup', sortOrder: 3, isActive: true },
+  { id: 'link-4', title: 'Lapor Pengaduan Lingkungan Hidup', url: 'https://pengaduan.dlh.pontianakkota.go.id', description: 'Saluran aduan masyarakat seputar lingkungan hidup', sortOrder: 4, isActive: true },
+  { id: 'link-5', title: 'Sobat Hijau - Portal Pelayanan', url: 'https://sobat.dst.my.id', description: 'Portal pelayanan online terpadu DLH Kota Pontianak', sortOrder: 5, isActive: true },
+]);
 await seed('notifications', [
   { id: 'notif-1', submissionId: 'SH-2026-08123', applicantName: 'PT. Pontianak Tirta Agung', serviceName: 'Pengujian Sampah / Air / Udara Laboratorium', newStatus: 'SURVEY_TEKNIS', message: 'Status permohonan Laboratorium (SH-2026-08123) milik PT. Pontianak Tirta Agung diperbarui oleh Admin menjadi SURVEY TEKNIS.', timestamp: '2026-06-01 09:12', isRead: false },
   { id: 'notif-2', submissionId: 'SH-2026-04981', applicantName: 'Bapak Ahmad Subardjo', serviceName: 'Izin Rekomendasi Upaya Pemantauan Lingkungan Hidup (UKL-UPL)', newStatus: 'SELESAI', message: 'Selamat! Dokumen Kelayakan UKL-UPL (SH-2026-04981) atas nama Bapak Ahmad Subardjo telah SELESAI diterbitkan dan siap diunduh.', timestamp: '2026-06-02 07:45', isRead: false }
@@ -49,7 +57,7 @@ const put = (table: string, row: any) => db.run(`INSERT OR REPLACE INTO ${table}
 
 const app = express();
 app.use(express.json({ limit: '2mb' }));
-app.get('/api/bootstrap', async (_, res) => res.json({ services: await all('services'), submissions: await all('submissions'), notifications: await all('notifications'), activityLogs: await all('activity_logs'), locations: await all('locations'), categories: await all('categories') }));
+app.get('/api/bootstrap', async (_, res) => res.json({ services: await all('services'), submissions: await all('submissions'), notifications: await all('notifications'), activityLogs: await all('activity_logs'), locations: await all('locations'), categories: await all('categories'), networkLinks: await all('network_links') }));
 app.post('/api/services', async (req, res) => { await put('services', req.body); res.json(req.body); });
 app.put('/api/services/:id', async (req, res) => { await put('services', req.body); res.json(req.body); });
 app.delete('/api/services/:id', async (req, res) => { await db.run('DELETE FROM services WHERE id=?', req.params.id); res.json({ ok: true }); });
@@ -86,6 +94,11 @@ app.get('/api/categories', async (_, res) => res.json(await all('categories')));
 app.post('/api/categories', async (req, res) => { await put('categories', req.body); res.json(req.body); });
 app.put('/api/categories/:id', async (req, res) => { await put('categories', req.body); res.json(req.body); });
 app.delete('/api/categories/:id', async (req, res) => { await db.run('DELETE FROM categories WHERE id=?', req.params.id); res.json({ ok: true }); });
+
+app.get('/api/network-links', async (_, res) => res.json(await all('network_links')));
+app.post('/api/network-links', async (req, res) => { await put('network_links', req.body); res.json(req.body); });
+app.put('/api/network-links/:id', async (req, res) => { await put('network_links', req.body); res.json(req.body); });
+app.delete('/api/network-links/:id', async (req, res) => { await db.run('DELETE FROM network_links WHERE id=?', req.params.id); res.json({ ok: true }); });
 
 app.use(express.static(path.join(__dirname, 'dist')));
 app.get('*', (_, res) => res.sendFile(path.join(__dirname, 'dist/index.html')));

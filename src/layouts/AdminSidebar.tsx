@@ -125,26 +125,21 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ adminSubTab, goAdmin
           )
         )}
 
-        {(showKelolaBerkas || showRancangLayanan || showKelolalLayanan || showKelolaPeta || showKelolaKategori || showJejaring) && (
+        {/* ── Menu Utama ── */}
+        {(showKelolaBerkas || showRancangLayanan || showKelolalLayanan || showJejaring) && (
           <div className="space-y-1 mt-4">
             {!isCollapsed && (
-              <p className="text-[9px] text-[#2D6A4F] font-bold uppercase tracking-widest px-2 mb-2">Menu Utama</p>
+              <div className="px-3 mb-2.5 flex items-center gap-2">
+                <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-stone-400/12">
+                  <FolderOpen className="w-3.5 h-3.5 text-stone-300" />
+                </div>
+                <span className="text-[11px] font-bold text-stone-200 tracking-tight">Menu Utama</span>
+                <div className="flex-1 h-px bg-gradient-to-r from-stone-400/25 to-transparent" />
+              </div>
             )}
             {showKelolaBerkas && (isCollapsed
               ? collapsedItem(<FolderOpen className="w-4 h-4" />, 'Berkas Masuk', () => navigate(() => goAdmin('kelola')), adminSubTab === 'kelola', pendingCount)
               : <SidebarItem active={adminSubTab === 'kelola'} onClick={() => navigate(() => goAdmin('kelola'))} icon={<FolderOpen className="w-4 h-4" />} label="Berkas Masuk" badge={pendingCount > 0 ? pendingCount : undefined} />
-            )}
-            {showKelolaPeta && (isCollapsed
-              ? collapsedItem(<Map className="w-4 h-4" />, 'Kelola Peta', () => navigate(() => goAdmin('peta')), adminSubTab === 'peta')
-              : <SidebarItem active={adminSubTab === 'peta'} onClick={() => navigate(() => goAdmin('peta'))} icon={<Map className="w-4 h-4" />} label="Kelola Peta" />
-            )}
-            {showKelolaKategori && (isCollapsed
-              ? collapsedItem(<Layers className="w-4 h-4" />, 'Kelola Kategori', () => navigate(() => goAdmin('kategori')), adminSubTab === 'kategori')
-              : <SidebarItem active={adminSubTab === 'kategori'} onClick={() => navigate(() => goAdmin('kategori'))} icon={<Layers className="w-4 h-4" />} label="Kelola Kategori" />
-            )}
-            {showJejaring && (isCollapsed
-              ? collapsedItem(<Globe className="w-4 h-4" />, 'Kelola Jejaring', () => navigate(() => goAdmin('jejaring')), adminSubTab === 'jejaring')
-              : <SidebarItem active={adminSubTab === 'jejaring'} onClick={() => navigate(() => goAdmin('jejaring'))} icon={<Globe className="w-4 h-4" />} label="Kelola Jejaring" />
             )}
             {showKelolalLayanan && (isCollapsed
               ? collapsedItem(<FolderSync className="w-4 h-4" />, 'Semua Layanan', () => navigate(() => goAdmin('layanan')), adminSubTab === 'layanan')
@@ -154,14 +149,48 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ adminSubTab, goAdmin
               ? collapsedItem(<Settings className="w-4 h-4" />, 'Rancang Layanan', () => navigate(() => goAdmin('rancang')), adminSubTab === 'rancang')
               : <SidebarItem active={adminSubTab === 'rancang'} onClick={() => navigate(() => goAdmin('rancang'))} icon={<Settings className="w-4 h-4" />} label="Rancang Layanan" />
             )}
+            {showJejaring && (isCollapsed
+              ? collapsedItem(<Globe className="w-4 h-4" />, 'Kelola Jejaring', () => navigate(() => goAdmin('jejaring')), adminSubTab === 'jejaring')
+              : <SidebarItem active={adminSubTab === 'jejaring'} onClick={() => navigate(() => goAdmin('jejaring'))} icon={<Globe className="w-4 h-4" />} label="Kelola Jejaring" />
+            )}
+          </div>
+        )}
+
+        {/* ── Grup Manajemen Peta ── */}
+        {(showKelolaPeta || showKelolaKategori) && (
+          <div className="space-y-1">
+            {isCollapsed ? (
+              <div className="flex flex-col items-center gap-2 pt-2 border-t border-white/8">
+                {showKelolaPeta && collapsedItem(<Map className="w-4 h-4" />, 'Kelola Peta', () => navigate(() => goAdmin('peta')), adminSubTab === 'peta')}
+                {showKelolaKategori && collapsedItem(<Layers className="w-4 h-4" />, 'Kelola Kategori', () => navigate(() => goAdmin('kategori')), adminSubTab === 'kategori')}
+              </div>
+            ) : (
+              <div className="space-y-0.5 mt-4">
+                <div className="px-3 mb-2.5 flex items-center gap-2">
+                  <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-emerald-500/12">
+                    <Map className="w-3.5 h-3.5 text-emerald-300" />
+                  </div>
+                  <span className="text-[11px] font-bold text-emerald-200 tracking-tight">Manajemen Peta</span>
+                  <div className="flex-1 h-px bg-gradient-to-r from-emerald-400/25 to-transparent" />
+                </div>
+                {showKelolaPeta && <SidebarItem active={adminSubTab === 'peta'} onClick={() => navigate(() => goAdmin('peta'))} icon={<Map className="w-4 h-4" />} label="Kelola Peta" />}
+                {showKelolaKategori && <SidebarItem active={adminSubTab === 'kategori'} onClick={() => navigate(() => goAdmin('kategori'))} icon={<Layers className="w-4 h-4" />} label="Kelola Kategori" />}
+              </div>
+            )}
           </div>
         )}
 
         {showKembaliWebsite && (isCollapsed
           ? <div className="mt-6 flex flex-col items-center">{collapsedItem(<LogOut className="w-4 h-4" />, 'Kembali ke Website', () => navigate(() => goGuest('beranda')), false)}</div>
           : (
-            <div className="space-y-1 mt-6">
-              <p className="text-[9px] text-[#2D6A4F] font-bold uppercase tracking-widest px-2 mb-2">Portal Publik</p>
+            <div className="pt-2 mt-2 border-t border-white/6 space-y-0.5">
+              <div className="px-3 mb-2.5 flex items-center gap-2">
+                <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-rose-500/12">
+                  <LogOut className="w-3.5 h-3.5 text-rose-300" />
+                </div>
+                <span className="text-[11px] font-bold text-rose-200 tracking-tight">Portal Publik</span>
+                <div className="flex-1 h-px bg-gradient-to-r from-rose-400/25 to-transparent" />
+              </div>
               <button onClick={() => navigate(() => goGuest('beranda'))} className="w-full px-3 py-2.5 transition-all flex items-center gap-2.5 text-left rounded-xl text-xs font-semibold text-rose-300 hover:bg-rose-950/40">
                 <LogOut className="w-4 h-4 shrink-0" /><span className="truncate">Kembali ke Website</span>
               </button>
@@ -169,7 +198,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ adminSubTab, goAdmin
           )
         )}
 
-        {(!showKelolaBerkas && !showRancangLayanan && !showKelolalLayanan && !showKelolaPeta && !showKembaliWebsite) && !isCollapsed && (
+        {(!showKelolaBerkas && !showRancangLayanan && !showKelolalLayanan && !showKelolaPeta && !showKelolaKategori && !showJejaring && !showKembaliWebsite) && !isCollapsed && (
           <div className="py-8 text-center text-stone-500 text-xs">
             <HelpCircle className="w-6 h-6 text-stone-600 mx-auto mb-2 opacity-60" />
             <p>Tidak ditemukan</p>

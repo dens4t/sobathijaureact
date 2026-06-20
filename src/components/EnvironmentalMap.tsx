@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { GeoCategory, GeoLocation } from '../types';
@@ -62,7 +63,19 @@ export const EnvironmentalMap: React.FC<EnvironmentalMapProps> = ({
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markersRef = useRef<Map<string, L.Marker>>(new Map());
   const pickedMarkerRef = useRef<L.Marker | null>(null);
+  const detailRef = useRef<HTMLDivElement>(null);
   const [activeFilter, setActiveFilter] = useState<string>('SEMUA');
+
+  const handleFilterChange = (filter: string) => {
+    setActiveFilter(filter);
+    if (filter !== 'SEMUA') {
+      setTimeout(() => {
+        detailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 120);
+    }
+  };
+
+  const sortedCats = [...categories].sort((a, b) => a.order - b.order);
 
   const filteredLocations = activeFilter === 'SEMUA'
     ? locations
@@ -181,6 +194,10 @@ export const EnvironmentalMap: React.FC<EnvironmentalMapProps> = ({
     }
   }, [pickedPosition]);
 
+  const selectedCat = activeFilter !== 'SEMUA'
+    ? sortedCats.find(c => c.name === activeFilter) || null
+    : null;
+
   return (
     <div className="bg-white dark:bg-stone-900 border border-emerald-100 dark:border-stone-800 rounded-2xl p-4 text-left shadow-sm space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -197,28 +214,46 @@ export const EnvironmentalMap: React.FC<EnvironmentalMapProps> = ({
         </div>
         {categories.length > 0 && (
           <div className="flex flex-wrap gap-1.5 shrink-0 max-w-[70%]">
-            <button
-              onClick={() => setActiveFilter('SEMUA')}
-              className={`px-2.5 py-1 text-[9.5px] font-bold rounded-lg transition border ${
+            <motion.button
+              layout
+              whileTap={{ scale: 0.93 }}
+              onClick={() => handleFilterChange('SEMUA')}
+              className={`relative px-2.5 py-1 text-[9.5px] font-bold rounded-lg border ${
                 activeFilter === 'SEMUA'
-                  ? 'bg-[#1B4332] text-white border-[#1B4332] dark:bg-emerald-600 dark:border-emerald-500'
+                  ? 'bg-[#1B4332] text-white border-[#1B4332] dark:bg-emerald-600 dark:border-emerald-500 shadow-sm'
                   : 'bg-slate-50 text-slate-500 border-slate-200 dark:bg-stone-800 dark:text-stone-300 dark:border-stone-700 hover:bg-slate-100'
               }`}
             >
-              SEMUA ({locations.length})
-            </button>
-            {[...categories].sort((a, b) => a.order - b.order).map(cat => (
-              <button
+              {activeFilter === 'SEMUA' && (
+                <motion.span
+                  layoutId="filter-glow"
+                  className="absolute inset-0 bg-white/10 rounded-lg"
+                  transition={{ type: 'spring', stiffness: 380, damping: 25 }}
+                />
+              )}
+              <span className="relative z-10">SEMUA ({locations.length})</span>
+            </motion.button>
+            {sortedCats.map(cat => (
+              <motion.button
                 key={cat.id}
-                onClick={() => setActiveFilter(cat.name)}
-                className={`px-2.5 py-1 text-[9.5px] font-bold rounded-lg transition border ${
+                layout
+                whileTap={{ scale: 0.93 }}
+                onClick={() => handleFilterChange(cat.name === activeFilter ? 'SEMUA' : cat.name)}
+                className={`relative px-2.5 py-1 text-[9.5px] font-bold rounded-lg border ${
                   activeFilter === cat.name
-                    ? 'bg-[#1B4332] text-white border-[#1B4332]'
+                    ? 'bg-[#1B4332] text-white border-[#1B4332] shadow-sm'
                     : 'bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100'
                 }`}
               >
-                {cat.name} ({getCatCount(cat.name)})
-              </button>
+                {activeFilter === cat.name && (
+                  <motion.span
+                    layoutId="filter-glow"
+                    className="absolute inset-0 bg-white/10 rounded-lg"
+                    transition={{ type: 'spring', stiffness: 380, damping: 25 }}
+                  />
+                )}
+                <span className="relative z-10">{cat.name} ({getCatCount(cat.name)})</span>
+              </motion.button>
             ))}
           </div>
         )}
@@ -233,7 +268,7 @@ export const EnvironmentalMap: React.FC<EnvironmentalMapProps> = ({
       {/* Legend */}
       <div className="flex flex-wrap items-center gap-3 text-[10px] text-slate-500 border-t border-slate-50 pt-3">
         <span className="font-bold text-slate-400">Legenda:</span>
-        {[...categories].sort((a, b) => a.order - b.order).map(cat => (
+        {sortedCats.map(cat => (
           <span key={cat.id} className="flex items-center gap-1">
             <span className="w-3 h-3 rounded-full" style={{ backgroundColor: cat.markerColor }}></span>
             {cat.name}
@@ -243,6 +278,83 @@ export const EnvironmentalMap: React.FC<EnvironmentalMapProps> = ({
           Sumber: DLH Kota Pontianak · OpenStreetMap
         </span>
       </div>
+
+      {/* Category Detail Card — inside the map container, below legend */}
+      <AnimatePresence mode="wait">
+        {selectedCat && (() => {
+          const catLocations = locations.filter(l => l.category === selectedCat.name);
+          const iconLetter = selectedCat.iconName ? selectedCat.iconName[0].toUpperCase() : '?';
+          return (
+            <motion.div
+              ref={detailRef}
+              key={selectedCat.id}
+              initial={{ opacity: 0, height: 0, y: -8 }}
+              animate={{ opacity: 1, height: 'auto', y: 0 }}
+              exit={{ opacity: 0, height: 0, y: -8 }}
+              transition={{ 
+                type: 'spring', stiffness: 280, damping: 24, mass: 0.6,
+                opacity: { duration: 0.2 }
+              }}
+              className="bg-emerald-50/40 border border-emerald-100 rounded-xl p-4 space-y-3 overflow-hidden"
+            >
+            {/* Header */}
+            <div className="flex items-center gap-3">
+              <div
+                className="w-9 h-9 rounded-full flex items-center justify-center shadow-sm shrink-0 text-white text-sm font-bold"
+                style={{ backgroundColor: selectedCat.markerColor }}
+              >
+                {iconLetter}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <h4 className="text-sm font-extrabold text-slate-800">{selectedCat.name}</h4>
+                  <span className="px-2 py-0.5 rounded-full bg-white border text-[9px] font-bold text-slate-500 font-mono">
+                    {catLocations.length} titik
+                  </span>
+                </div>
+                <p className="text-[10px] text-slate-500">{selectedCat.shortDesc}</p>
+              </div>
+            </div>
+
+            {/* Description — compact */}
+            <div
+              className="text-xs text-slate-600 leading-relaxed space-y-2
+                [&_strong]:font-bold [&_strong]:text-emerald-700
+                [&_em]:italic [&_em]:text-slate-500
+                [&_h4]:font-bold [&_h4]:text-xs [&_h4]:uppercase [&_h4]:tracking-wider
+                [&_p]:text-xs [&_p]:leading-relaxed
+                [&_ol]:space-y-0.5 [&_ol_li]:text-xs
+                [&_.rounded-xl]:rounded-lg
+                [&_.bg-amber-50]:bg-amber-50/60
+                [&_.bg-emerald-50]:bg-emerald-50/60
+                [&_.bg-blue-50]:bg-blue-50/60
+                [&_.bg-green-50]:bg-green-50/60"
+            >
+              <div dangerouslySetInnerHTML={{ __html: selectedCat.description }} />
+            </div>
+
+            {/* Location list — collapsible */}
+            {catLocations.length > 0 && (
+              <details className="group">
+                <summary className="text-[10px] font-bold text-slate-400 cursor-pointer hover:text-slate-600 transition list-none flex items-center gap-1 pt-2 border-t border-emerald-100">
+                  <span>📍 Daftar {catLocations.length} lokasi</span>
+                  <span className="ml-auto group-open:rotate-180 transition-transform text-[8px]">▼</span>
+                </summary>
+                <ul className="mt-2 space-y-1">
+                  {catLocations.map(loc => (
+                    <li key={loc.id} className="flex items-center gap-2 text-[10px] text-slate-600 py-1">
+                      <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: selectedCat.markerColor }} />
+                      <span className="font-medium">{loc.name}</span>
+                      <span className="text-slate-400 truncate">— {loc.address}</span>
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            )}
+            </motion.div>
+          );
+        })()}
+      </AnimatePresence>
     </div>
   );
 };

@@ -2,6 +2,7 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Activity, ExternalLink } from 'lucide-react';
 import { useStore } from './store/useStore';
+import type { Submission } from './types';
 import { nowSql, createTimeline } from './lib/timeline';
 import { AccessibilityWidget } from './components/AccessibilityWidget';
 import { LayananKami } from './components/LayananKami';
@@ -10,6 +11,8 @@ import { AsistenHijau } from './components/AsistenHijau';
 import { PublicHeader } from './layouts/PublicHeader';
 import { PublicFooter } from './layouts/PublicFooter';
 import { AdminLayout } from './layouts/AdminLayout';
+
+import { AdminLogin } from './components/AdminLogin';
 
 // Lazy load heavy components
 const EcoCarousel = React.lazy(() => import('./components/EcoCarousel').then(m => ({ default: m.EcoCarousel })));
@@ -26,6 +29,8 @@ export default function App() {
   const [adminSubTab, setAdminSubTab] = useState<'kelola' | 'rancang' | 'layanan' | 'peta' | 'kategori' | 'jejaring'>('kelola');
   const [trackSearchCode, setTrackSearchCode] = useState<string>('');
   const [isActivityLogModalOpen, setIsActivityLogModalOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentPath, setCurrentPath] = useState(window.location.pathname);
   
   const [toasts, setToasts] = useState<{ id: string; message: string; type: 'success' | 'info' | 'error' }[]>([]);
   const addToast = (message: string, type: 'success' | 'info' | 'error' = 'success') => {
@@ -34,8 +39,28 @@ export default function App() {
     setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 4500);
   };
 
-  const goAdmin = (sub: 'kelola' | 'rancang' | 'layanan' | 'peta' | 'kategori' | 'jejaring') => { navigateTo(`/admin/${sub}`); };
+  const goAdmin = (sub: 'kelola' | 'rancang' | 'layanan' | 'peta' | 'kategori' | 'jejaring') => {
+    if (sessionStorage.getItem('sh_admin_auth') !== 'authenticated') {
+      navigateTo('/admin/login');
+      return;
+    }
+    navigateTo(`/admin/${sub}`);
+  };
   const goGuest = (tab: string) => { navigateTo(`/${tab === 'beranda' ? '' : tab}`); };
+
+  const handleAdminLogin = () => {
+    sessionStorage.setItem('sh_admin_auth', 'authenticated');
+    setIsAuthenticated(true);
+    navigateTo('/admin/kelola');
+    addToast('Selamat datang, Administrator DLH!', 'success');
+  };
+
+  const handleAdminLogout = () => {
+    sessionStorage.removeItem('sh_admin_auth');
+    setIsAuthenticated(false);
+    navigateTo('/admin/login');
+    addToast('Anda telah keluar dari panel admin.', 'info');
+  };
 
   const navigateTo = (path: string) => {
     window.history.pushState(null, '', path);
@@ -47,16 +72,40 @@ export default function App() {
   }, [initStore]);
 
   useEffect(() => {
+    // Check stored auth on mount
+    const stored = sessionStorage.getItem('sh_admin_auth');
+    if (stored === 'authenticated') {
+      setIsAuthenticated(true);
+    }
+  }, []);
+
+  useEffect(() => {
     const readPath = () => {
-      const path = window.location.pathname.replace(/^\//, '').split('/');
+      const pathname = window.location.pathname;
+      setCurrentPath(pathname);
+      const path = pathname.replace(/^\//, '').split('/');
       const page = path[0] || 'beranda';
       const sub = path[1] || '';
+      const isAuth = sessionStorage.getItem('sh_admin_auth') === 'authenticated';
       if (page === 'admin') {
+        if (sub === 'login') {
+          if (isAuth) {
+            navigateTo('/admin/kelola');
+            return;
+          }
+          setPortal('guest');
+          setActiveTab('beranda');
+          return;
+        }
+        if (!isAuth) {
+          navigateTo('/admin/login');
+          return;
+        }
         setPortal('admin');
+        setIsAuthenticated(true);
         if (sub === 'rancang' || sub === 'kelola' || sub === 'layanan' || sub === 'peta' || sub === 'kategori' || sub === 'jejaring') setAdminSubTab(sub as any);
         else setAdminSubTab('kelola');
       } else {
-        // Only accept known guest tabs
         const valid = ['beranda', 'layanan', 'lacak', 'asisten', 'peta', 'jejaring', ''];
         setPortal('guest');
         setActiveTab(valid.includes(page) ? page || 'beranda' : 'beranda');
@@ -167,8 +216,10 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {portal === 'admin' ? (
-        <AdminLayout adminSubTab={adminSubTab} goAdmin={goAdmin} goGuest={goGuest} speakText={speakText} routeToTracking={routeToTracking} addToast={addToast} />
+      {currentPath.startsWith('/admin/login') && sessionStorage.getItem('sh_admin_auth') !== 'authenticated' ? (
+        <AdminLogin onLogin={handleAdminLogin} />
+      ) : portal === 'admin' ? (
+        <AdminLayout adminSubTab={adminSubTab} goAdmin={goAdmin} goGuest={goGuest} speakText={speakText} routeToTracking={routeToTracking} addToast={addToast} onLogout={handleAdminLogout} />
       ) : (
         <div className="flex flex-col flex-1 w-full">
           <PublicHeader activeTab={activeTab} changeTab={changeTab} goAdmin={goAdmin} speakText={speakText} setTrackSearchCode={setTrackSearchCode} addToast={addToast} />
@@ -208,6 +259,32 @@ export default function App() {
                       <MapView locations={locations} categories={categories} />
                     </Suspense>
                   </div>
+                )}
+
+                {activeTab === 'layanan' && (
+                  <LayananKami services={services} onSubmitForm={(service, data) => {
+                    const newSub: Submission = {
+                      id: data.__code,
+                      serviceId: service.id,
+                      serviceName: service.name,
+                      applicantName: data.__applicantName,
+                      status: 'DIAJUKAN',
+                      formData: data,
+                      submittedAt: nowSql(),
+                      timeline: createTimeline('DIAJUKAN')
+                    };
+                    addSubmission(newSub);
+                    addToast(`Permohonan ${service.name} berhasil dikirim! Kode: ${data.__code}`, 'success');
+                    speakText(`Permohonan ${service.name} berhasil dikirim. Kode pelacakan ${data.__code}`);
+                  }} onSpeak={speakText} />
+                )}
+
+                {activeTab === 'lacak' && (
+                  <TrackingSobat submissions={submissions} initialSearchCode={trackSearchCode} onSpeak={speakText} />
+                )}
+
+                {activeTab === 'asisten' && (
+                  <AsistenHijau ttsEnabled={useStore.getState().accessibility.textToSpeech} onSpeak={speakText} />
                 )}
 
                 {activeTab === 'peta' && (

@@ -7,7 +7,7 @@ import { LocationManager } from '../components/LocationManager';
 import { CategoryManager } from '../components/CategoryManager';
 import { NetworkLinkManager } from '../components/NetworkLinkManager';
 import { motion, AnimatePresence } from 'motion/react';
-import { Menu, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { Menu, PanelLeftClose, PanelLeftOpen, LogOut } from 'lucide-react';
 import { AdminSidebar } from './AdminSidebar';
 
 interface AdminLayoutProps {
@@ -17,9 +17,10 @@ interface AdminLayoutProps {
   speakText: (text: string) => void;
   routeToTracking: (code: string) => void;
   addToast: (msg: string, type: 'success' | 'info' | 'error') => void;
+  onLogout: () => void;
 }
 
-export const AdminLayout: React.FC<AdminLayoutProps> = ({ adminSubTab, goAdmin, goGuest, speakText, routeToTracking, addToast }) => {
+export const AdminLayout: React.FC<AdminLayoutProps> = ({ adminSubTab, goAdmin, goGuest, speakText, routeToTracking, addToast, onLogout }) => {
   const { 
     services, submissions, locations, categories,
     updateSubmissionStatus, deleteSubmission,
@@ -90,6 +91,14 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ adminSubTab, goAdmin, 
             <span className="text-[10px] text-emerald-800 bg-emerald-50 dark:bg-stone-850 dark:text-emerald-300 px-3 py-1 rounded-full font-bold font-mono">
               🟢 ADMINISTRATOR ONLINE
             </span>
+            <button
+              onClick={onLogout}
+              className="text-[10px] font-bold text-rose-500/70 hover:text-rose-400 bg-rose-500/5 hover:bg-rose-500/10 px-3 py-1.5 rounded-xl border border-rose-500/10 hover:border-rose-500/20 transition flex items-center gap-1.5"
+              title="Keluar dari panel admin"
+            >
+              <LogOut className="w-3 h-3" />
+              <span className="hidden sm:inline">Keluar</span>
+            </button>
           </div>
         </header>
 
